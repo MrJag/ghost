@@ -282,7 +282,7 @@ Public Class clsBotSettings
 
         'preferences
         Me.countdown = 0                                    '0 to disable, 1+ to enable
-        Me.maxPing = 150                                    'Maximum ping before a player gets kicked
+        Me.maxPing = 500                                    'Maximum ping before a player gets kicked
         Me.maxGames = 255                                   'Maximum games allowed to be hosted at a
     End Sub
 

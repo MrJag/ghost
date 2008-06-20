@@ -978,7 +978,7 @@ Public Class frmLainEthLite
                     TextBox2.Text = data.botSettings.commandTrigger
                 End If
                 If table.Columns.Contains("refreshmessage") Then
-                    If CStr(row("refreshmessage")) = CStr(255) Then
+                    If CStr(row("refreshmessage")) = "True" Then
                         data.botSettings.enable_refreshDisplay = True
                     Else
                         data.botSettings.enable_refreshDisplay = False
@@ -996,7 +996,7 @@ Public Class frmLainEthLite
                     TextBox1.Text = "UberAdmin"
                 End If
                 If table.Columns.Contains("reconnect") Then
-                    If CStr(row("reconnect")) = CStr(255) Then
+                    If CStr(row("reconnect")) = "True" Then
                         data.botSettings.enable_reconnect = True
                     Else
                         data.botSettings.enable_reconnect = True
@@ -1007,7 +1007,7 @@ Public Class frmLainEthLite
                     CheckBox1.Checked = data.botSettings.enable_reconnect
                 End If
                 If table.Columns.Contains("lcpings") Then
-                    If CStr(row("lcpings")) = CStr(255) Then
+                    If CStr(row("lcpings")) = "True" Then
                         data.botSettings.enable_LCPings = True
                     Else
                         data.botSettings.enable_LCPings = False
@@ -1312,7 +1312,11 @@ Public Class frmLainEthLite
                 End If
             End If
         Else
-            SendChat(String.Format("/me : Maxgames has been reached ({0})", data.botSettings.maxGames))
+            If isWhisper Then
+                SendChat(String.Format("/w {0}: Maxgames has been reached ({1})", callerName, data.botSettings.maxGames))
+            Else
+                SendChat(String.Format("/me : Maxgames has been reached ({0})", data.botSettings.maxGames))
+            End If
         End If
     End Sub
     'Netrunner|0.1|root admin commands|
@@ -1801,8 +1805,10 @@ Public Class frmLainEthLite
         data.botSettings.username = txtAccount.Text
     End Sub
     Private Sub TextBox2_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox2.TextChanged
-        data.botSettings.commandTrigger = TextBox2.Text.Substring(0, 1)
-        TextBox2.Text = TextBox2.Text.Substring(0, 1)
+        If TextBox2.TextLength > 0 Then
+            data.botSettings.commandTrigger = TextBox2.Text.Substring(0, 1)
+        End If
+        TextBox2.Text = data.botSettings.commandTrigger
     End Sub
     Private Sub CheckBox3_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CheckBox3.CheckedChanged
         data.botSettings.enable_refreshDisplay = CheckBox3.Checked
