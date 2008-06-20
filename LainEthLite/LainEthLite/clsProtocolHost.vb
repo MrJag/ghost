@@ -221,6 +221,7 @@ Public Class clsHostPlayer
     End Function
 
     Public Sub SpoofCheck()
+        'MsgBox("starting spoofcheck timer")
         whoisTimer.Start()
     End Sub
 
@@ -233,6 +234,7 @@ Public Class clsHostPlayer
             If isRunning = False Then
                 isRunning = True
                 whoisTimer.Stop()
+                'Debug.WriteLine(String.Format("calling eventspoofcheck({0})", GetName))
                 RaiseEvent EventSpoofCheck(GetName)
                 isRunning = False
             End If

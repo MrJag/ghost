@@ -25,6 +25,7 @@ Public Class clsBotCommandClassifier
         ADDADMIN
         REMOVEADMIN
         MAXGAMES
+        BAN
 
         'lobby  
         START
@@ -191,14 +192,11 @@ Public MustInherit Class clsBotCommand
         Dim name As String
         Try
             For Each name In authorisedUser
+                'Debug.WriteLine(String.Format("Admin Test: [{0}] =?= [{1}]", user.ToLower, name.ToLower))
                 If user.ToLower = name.ToLower Then
                     Return True
                 End If
             Next
-            If frmLainEthLite.data.userList.getUser(user).userLevel >= 20 Then
-                Return True
-            End If
-
 
             Return False
         Catch ex As Exception
@@ -222,6 +220,7 @@ Public Class clsBotCommandHostChannel
     Public Event EventBotChangeChannel(ByVal channelName As String)
     Public Event EventBotModifyAdmin(ByVal name As String, ByVal add As Boolean)
     Public Event EventBotMaxGames(ByVal max As Byte)
+    Public Event EventBotBan(ByVal name As String, ByVal reason As String)
 
     Public Sub New(ByVal adminName() As String)
         MyBase.New(adminName)
@@ -441,14 +440,37 @@ Public Class clsBotCommandHostChannel
                                 Next
                             Next
                         ElseIf actionType = action.SHOW Then
-                            output.Append(String.Format("Access for {0}: ", command.commandParamameter(1)))
-                            For Each flag As adminFlags In [Enum].GetValues(GetType(adminFlags))
-                                If flag <> 0 Then
-                                    If ((frmLainEthLite.data.adminList.getUser(command.commandParamameter(1)).flags And flag) = flag) Then
-                                        output.Append(String.Format("{0}, ", flag.ToString))
+                            Dim username As String = frmLainEthLite.data.userList.fixName(command.commandParamameter(1))
+                            If username.Length > 0 Then
+                                output.Append(String.Format("Access for {0}: ", username))
+                                For Each flag As adminFlags In [Enum].GetValues(GetType(adminFlags))
+                                    If flag <> 0 Then
+                                        If ((frmLainEthLite.data.adminList.getUser(command.commandParamameter(1)).flags And flag) = flag) Then
+                                            output.Append(String.Format("{0}, ", flag.ToString))
+                                        End If
                                     End If
-                                End If
-                            Next
+                                Next
+                            Else
+                                output.Append(String.Format("{0} does not exist.", command.commandParamameter(1)))
+                            End If
+                        End If
+                        RaiseEvent EventBotResponse(output.ToString, isWhisper, data.GetUser)
+                    Case clsBotCommandClassifier.BotCommandType.BAN
+                        Dim output As New System.Text.StringBuilder
+                        Dim username As String = frmLainEthLite.data.userList.fixName(command.commandParamameter(1))
+                        If username.Length > 0 Then
+                            If frmLainEthLite.data.userList.getUser(username).ban.Length > 0 Then
+                                output.Append(String.Format("{0} is already banned -- {1}.", username, frmLainEthLite.data.userList.getUser(username).ban))
+                            Else
+                                Dim description As String = ""
+                                For i = 1 To command.commandParamameter.Length - 1
+                                    description = description & command.commandParamameter(i) & " "
+                                Next
+                                description = description.Trim
+                                RaiseEvent EventBotBan(command.commandParamameter(0), description)
+                            End If
+                        Else
+                            output.Append(String.Format("{0} does not exist.", username))
                         End If
                         RaiseEvent EventBotResponse(output.ToString, isWhisper, data.GetUser)
                 End Select
@@ -657,14 +679,19 @@ Public Class clsBotCommandHostLobby
                             Next
                         Next
                     ElseIf actionType = action.SHOW Then
-                        output.Append(String.Format("Access for {0}: ", command.commandParamameter(1)))
-                        For Each flag As adminFlags In [Enum].GetValues(GetType(adminFlags))
-                            If flag <> 0 Then
-                                If ((frmLainEthLite.data.adminList.getUser(command.commandParamameter(1)).flags And flag) = flag) Then
-                                    output.Append(String.Format("{0}, ", flag.ToString))
+                        Dim username As String = frmLainEthLite.data.userList.fixName(command.commandParamameter(1))
+                        If username.Length > 0 Then
+                            output.Append(String.Format("Access for {0}: ", username))
+                            For Each flag As adminFlags In [Enum].GetValues(GetType(adminFlags))
+                                If flag <> 0 Then
+                                    If ((frmLainEthLite.data.adminList.getUser(command.commandParamameter(1)).flags And flag) = flag) Then
+                                        output.Append(String.Format("{0}, ", flag.ToString))
+                                    End If
                                 End If
-                            End If
-                        Next
+                            Next
+                        Else
+                            output.Append(String.Format("{0} does not exist.", command.commandParamameter(1)))
+                        End If
                     End If
                     RaiseEvent EventBotResponse(output.ToString)
 

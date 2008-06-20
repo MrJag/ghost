@@ -656,6 +656,7 @@ Public Class clsGameHost
 
     Private Sub OnEventMessage_SpoofCheck(ByVal name As String)
         Try
+            'Debug.WriteLine(String.Format("Reached OnEventMessage_SpoofCheck({0})", name))
             If gameState = GAME_PUBLIC Then
                 bnet.SendChatToQueue(New clsBNETChatMessage(String.Format("/whois {0}", name), hostName, False))
             ElseIf gameState = GAME_PRIVATE Then
@@ -1108,20 +1109,14 @@ Public Class clsGameHost
                                     SendChat(String.Format("Adding {0} as a new player in the local database.", player.GetName))
                                     data.userList.addUser(player.GetName, player.GetSock.GetLocalIP, player.GetSock.GetRemoteIP)
                                 Else
-                                    If user.userLevel = 0 Then
+                                    If user.ban.Length > 0 Then
                                         'player.cancelSpoofCheck()
                                         ClientStop(player.GetSock)
                                         SendChat(String.Format("{0} is blacklisted and cannot join this game.", player.GetName))
                                         Exit Select
-                                    End If
-                                    If user.userLevel > 10 Then
-                                        SendChat(String.Format("{0} last played {1} day(s) ago.", player.GetName, Now.Subtract(user.recentGame).Days))
-                                    End If
-                                    If user.userLevel >= 20 Then
-                                        'SendChat(String.Format("{0} already exists in the local database.", player.GetName))
-
+                                    ElseIf user.vip = True Then
                                         'new database VIP list check
-                                        SendChat(String.Format("{0} has VIP status.", player.GetName))
+                                        SendChat(String.Format("{0} has VIP status and last played {1} day(s) ago.", player.GetName, Now.Subtract(user.recentGame).Days))
                                         SID = protocol.GetReserveSlot(reserveList)
                                         If SID <> 255 Then
                                             botLobby_EventBotSlot(True, SID)  'kick the non reserved player so the reserved player can join.
@@ -1132,8 +1127,9 @@ Public Class clsGameHost
                                         If SID <> 255 Then
                                             botLobby_EventBotSlot(True, SID)  'kick the non reserved player so the reserved player can join.
                                         End If
+                                    Else
+                                        SendChat(String.Format("{0} last played {1} day(s) ago.", player.GetName, Now.Subtract(user.recentGame).Days))
                                     End If
-
                                 End If
 
                                 Debug.WriteLine(String.Format("{0} is trying to join the game.", player.GetName))
@@ -1145,9 +1141,9 @@ Public Class clsGameHost
 
                                 PID = protocol.PlayerAdd(player.GetName(), player.GetSock, player.GetExternalIP, player.GetInternalIP)
                                 If PID <> 255 Then
-                                    Debug.WriteLine(String.Format("Adding spoofcheck handler for {0}", player.GetName))
+                                    'Debug.WriteLine(String.Format("Adding spoofcheck handler for {0}", player.GetName))
                                     AddHandler protocol.GetPlayerFromPID(PID).EventSpoofCheck, AddressOf OnEventMessage_SpoofCheck
-                                    player.SpoofCheck()
+                                    protocol.GetPlayerFromPID(PID).SpoofCheck()
 
                                     Debug.WriteLine(String.Format("Player:{0} PID:{1} SID:{5} Internal:{2} External:{3} PlayerNumExclusive:{4} ", player.GetName, PID, clsHelper.PrintArray(player.GetInternalIP), clsHelper.PrintArray(player.GetExternalIP), playerCount, protocol.GetPlayerSlot(PID).GetSID))
                                     'Debug.WriteLine(player.GetName() & " : " & PID & " " & clsHelper.PrintArray(player.GetInternalIP) & " " & clsHelper.PrintArray(player.GetExternalIP))

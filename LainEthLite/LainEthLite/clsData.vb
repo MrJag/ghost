@@ -92,7 +92,6 @@ Public Class clsAdmin
         'Client c = new Client();
         'c.ClientState = (ClientStates.HasDiscount|ClientStates.IsSupplier|ClientStates.IsOverdra
         flags = flags Or flag
-        Beep()
     End Sub
 End Class
 #End Region
@@ -106,7 +105,9 @@ Public Class clsUser
     Public firstDate As System.DateTime       'Date player was first detected
     Public recentGame As System.DateTime      'Date player was last detected
     Public score As Long           'Will be used to calculate ranking
-    Public userLevel As Byte       '0 = none/banned, 10 = rank checking, 20 = VIP, 40 = game hosting, 100 = full admin
+    'Public userLevel As Byte       '0 = none/banned, 10 = rank checking, 20 = VIP, 40 = game hosting, 100 = full admin
+    Public ban As String           'Ban description
+    Public vip As Boolean           'VIP
 
     'network details
     Public internalIP As Byte()    'Last known internal IP address
@@ -138,7 +139,9 @@ Public Class clsUser
         Me.firstDate = Now            'Date player was first detected
         Me.recentGame = Now           'Date player was last detected
         Me.score = 0                'Will be used to calculate ranking
-        Me.userLevel = 0            '0 = none/banned, 10 = rank checking, 20 = game hosting, 100 = full admin
+        'Me.userLevel = 0            '0 = none/banned, 10 = rank checking, 20 = game hosting, 100 = full admin
+        Me.ban = ""                 'Ban description
+        Me.vip = False              'VIP
 
         'network details
         Me.internalIP = New Byte() {}         'Last known internal IP address
@@ -171,7 +174,9 @@ Public Class clsUser
         Me.firstDate = Now          'Date player was first detected
         Me.recentGame = Now         'Date player was last detected
         Me.score = 0                'Will be used to calculate ranking
-        Me.userLevel = 0 'accessLevel  '0 = none/banned, 10 = rank checking, 20 = game hosting, 100 = full admin
+        'Me.userLevel = 10 'accessLevel  '0 = none/banned, 10 = rank checking, 20 = game hosting, 100 = full admin
+        Me.ban = ""                 'Ban description
+        Me.vip = False              'VIP
 
         'network details
         Me.internalIP = intIP       'Last known internal IP address

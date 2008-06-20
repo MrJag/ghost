@@ -22,7 +22,7 @@ Public Class frmLainEthLite
     Private Const GAME_PRIVATE As Integer = 17
     Private Const GAME_PUBLIC As Integer = 16
 
-    Public Const ProjectLainVersion As String = "Battle.net Game Host v0.13 beta"
+    Public Const ProjectLainVersion As String = "Battle.net Game Host v0.15 Beta"
     Public Const ProjectLainName As String = "LainEthLite"
     Public Const ProjectLainConfig As String = "LainEthLiteConfiguration"
     Public Const ProjectLainMap As String = "LainEthMap"
@@ -1371,6 +1371,14 @@ Public Class frmLainEthLite
             End If
         End If
     End Sub
+    Private Sub bot_EventBotBan(ByVal name As String, ByVal reason As String) Handles bot.EventBotBan
+        Dim user As clsUser = data.userList.getUser(name)
+        If user.name.Length > 0 Then
+            user.ban = reason
+            SendChat(String.Format("Banned: {0} -- {1}.", name, reason))
+        End If
+    End Sub
+
     Private Sub bot_EventBotUnHost(ByVal isWhisper As Boolean, ByVal owner As String) Handles bot.EventBotUnHost
         Dim gamename As String
         Dim result As String
