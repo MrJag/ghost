@@ -10,6 +10,7 @@ Public Class frmLainEthLite
     'Netrunner|0.11|txt revolution|
     Public Shared RootAdmin As String
     Public Shared Parameters As Integer
+    Public CurrentAdminList As ArrayList
 
     Public Shared data As New clsData
 
@@ -51,6 +52,8 @@ Public Class frmLainEthLite
     Friend WithEvents Label2 As System.Windows.Forms.Label
     Friend WithEvents CheckBox3 As System.Windows.Forms.CheckBox
     Friend WithEvents MenuItem1 As System.Windows.Forms.MenuItem
+    Friend WithEvents Label3 As System.Windows.Forms.Label
+    Friend WithEvents TextBox3 As System.Windows.Forms.TextBox
     Private lenp As clsLENPServer
 
 
@@ -135,6 +138,7 @@ Public Class frmLainEthLite
         Me.menuLENPClient = New System.Windows.Forms.MenuItem
         Me.contextMain = New System.Windows.Forms.ContextMenu
         Me.contextShow = New System.Windows.Forms.MenuItem
+        Me.MenuItem1 = New System.Windows.Forms.MenuItem
         Me.contextExit = New System.Windows.Forms.MenuItem
         Me.trayIcon = New System.Windows.Forms.NotifyIcon(Me.components)
         Me.labelStatus = New System.Windows.Forms.Label
@@ -172,6 +176,8 @@ Public Class frmLainEthLite
         Me.buttonGameStop = New System.Windows.Forms.Button
         Me.listGame = New System.Windows.Forms.ListBox
         Me.botParam = New System.Windows.Forms.GroupBox
+        Me.Label3 = New System.Windows.Forms.Label
+        Me.TextBox3 = New System.Windows.Forms.TextBox
         Me.CheckBox3 = New System.Windows.Forms.CheckBox
         Me.Label2 = New System.Windows.Forms.Label
         Me.TextBox2 = New System.Windows.Forms.TextBox
@@ -179,7 +185,6 @@ Public Class frmLainEthLite
         Me.CheckBox1 = New System.Windows.Forms.CheckBox
         Me.TextBox1 = New System.Windows.Forms.TextBox
         Me.Label1 = New System.Windows.Forms.Label
-        Me.MenuItem1 = New System.Windows.Forms.MenuItem
         Me.groupParam.SuspendLayout()
         Me.groupUser.SuspendLayout()
         Me.groupGame.SuspendLayout()
@@ -230,6 +235,11 @@ Public Class frmLainEthLite
         '
         Me.contextShow.Index = 0
         Me.contextShow.Text = "Show/Hide GHost"
+        '
+        'MenuItem1
+        '
+        Me.MenuItem1.Index = 1
+        Me.MenuItem1.Text = "-"
         '
         'contextExit
         '
@@ -591,6 +601,8 @@ Public Class frmLainEthLite
         '
         'botParam
         '
+        Me.botParam.Controls.Add(Me.Label3)
+        Me.botParam.Controls.Add(Me.TextBox3)
         Me.botParam.Controls.Add(Me.CheckBox3)
         Me.botParam.Controls.Add(Me.Label2)
         Me.botParam.Controls.Add(Me.TextBox2)
@@ -605,13 +617,30 @@ Public Class frmLainEthLite
         Me.botParam.TabStop = False
         Me.botParam.Text = "Bot Settings"
         '
+        'Label3
+        '
+        Me.Label3.Font = New System.Drawing.Font("Trebuchet MS", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label3.Location = New System.Drawing.Point(182, 74)
+        Me.Label3.Name = "Label3"
+        Me.Label3.Size = New System.Drawing.Size(154, 21)
+        Me.Label3.TabIndex = 47
+        Me.Label3.Text = "# of Hosted Games Max"
+        '
+        'TextBox3
+        '
+        Me.TextBox3.Location = New System.Drawing.Point(7, 74)
+        Me.TextBox3.Name = "TextBox3"
+        Me.TextBox3.Size = New System.Drawing.Size(168, 20)
+        Me.TextBox3.TabIndex = 46
+        Me.TextBox3.Text = "255"
+        '
         'CheckBox3
         '
         Me.CheckBox3.AutoSize = True
         Me.CheckBox3.Checked = True
         Me.CheckBox3.CheckState = System.Windows.Forms.CheckState.Checked
         Me.CheckBox3.Font = New System.Drawing.Font("Trebuchet MS", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.CheckBox3.Location = New System.Drawing.Point(6, 122)
+        Me.CheckBox3.Location = New System.Drawing.Point(6, 149)
         Me.CheckBox3.Name = "CheckBox3"
         Me.CheckBox3.Size = New System.Drawing.Size(158, 20)
         Me.CheckBox3.TabIndex = 45
@@ -629,6 +658,7 @@ Public Class frmLainEthLite
         '
         'TextBox2
         '
+        Me.TextBox2.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.TextBox2.Location = New System.Drawing.Point(6, 48)
         Me.TextBox2.Name = "TextBox2"
         Me.TextBox2.Size = New System.Drawing.Size(170, 20)
@@ -652,7 +682,7 @@ Public Class frmLainEthLite
         '
         Me.CheckBox1.AutoSize = True
         Me.CheckBox1.Font = New System.Drawing.Font("Trebuchet MS", 8.25!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.CheckBox1.Location = New System.Drawing.Point(6, 77)
+        Me.CheckBox1.Location = New System.Drawing.Point(6, 124)
         Me.CheckBox1.Name = "CheckBox1"
         Me.CheckBox1.Size = New System.Drawing.Size(134, 20)
         Me.CheckBox1.TabIndex = 41
@@ -678,11 +708,6 @@ Public Class frmLainEthLite
         Me.Label1.TabIndex = 40
         Me.Label1.Text = "Root Admin"
         '
-        'MenuItem1
-        '
-        Me.MenuItem1.Index = 1
-        Me.MenuItem1.Text = "-"
-        '
         'frmLainEthLite
         '
         Me.AutoScaleBaseSize = New System.Drawing.Size(5, 13)
@@ -703,6 +728,7 @@ Public Class frmLainEthLite
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.MaximizeBox = False
         Me.Menu = Me.menuMain
+        Me.MinimizeBox = False
         Me.Name = "frmLainEthLite"
         Me.ShowInTaskbar = False
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen
@@ -831,12 +857,14 @@ Public Class frmLainEthLite
 
     Private Function LoadUserTable(ByVal table As DataTable) As Boolean
         Dim row As DataRow
+        CurrentAdminList.Clear()
         Try
             If table.Rows.Count > 0 AndAlso table.Columns.Contains("user") Then
                 listUser.BeginUpdate()
                 listUser.Items.Clear()
                 For Each row In table.Rows
                     listUser.Items.Add(CStr(row("user")))
+                    CurrentAdminList.Add(CStr(row("user")))
                 Next
                 listUser.EndUpdate()
                 Return True
@@ -989,6 +1017,14 @@ Public Class frmLainEthLite
                     data.botSettings.enable_LCPings = True
                     CheckBox2.Checked = True
                 End If
+                If table.Columns.Contains("maxgames") Then
+                    data.botSettings.maxGames = CByte(row("maxgames"))
+                    TextBox3.Text = CStr(data.botSettings.maxGames)
+                Else
+                    data.botSettings.maxGames = 255
+                    TextBox3.Text = CStr(data.botSettings.maxGames)
+                End If
+
                 Return True
             End If
             Return False
@@ -1068,6 +1104,8 @@ Public Class frmLainEthLite
             table.Columns.Add(column)
             column = New DataColumn("refreshmessage", GetType(String))
             table.Columns.Add(column)
+            column = New DataColumn("maxgames", GetType(String))
+            table.Columns.Add(column)
 
             row = table.NewRow
             row("war3path") = txtWar3.Text
@@ -1084,7 +1122,7 @@ Public Class frmLainEthLite
             row("lcpings") = data.botSettings.enable_LCPings
             row("commandtrigger") = data.botSettings.commandTrigger
             row("refreshmessage") = data.botSettings.enable_refreshDisplay
-
+            row("maxgames") = data.botSettings.maxGames
             table.Rows.Add(row)
 
             Return table
@@ -1228,49 +1266,53 @@ Public Class frmLainEthLite
         End If
     End Sub
     Private Sub bot_EventBotHost(ByVal isPublic As Boolean, ByVal numPlayers As Integer, ByVal gameName As String, ByVal callerName As String, ByVal isWhisper As Boolean, ByVal owner As String) Handles bot.EventBotHost
-        Dim host As clsGameHost
-        Dim state As Byte
+        If listHost.Count < data.botSettings.maxGames Then
+            Dim host As clsGameHost
+            Dim state As Byte
 
-        If isPublic Then
-            state = GAME_PUBLIC
-        Else
-            state = GAME_PRIVATE
-        End If
-
-        host = New clsGameHost(GetAdminList, state, numPlayers, gameName, bnet.GetUniqueUserName, callerName, bnet.GetHostPort, map.GetMapPath, map.GetMapSize, map.GetMapInfo, map.GetMapCRC, bnet, data)
-        If host.HostStart Then
-            listHost.Add(host)
-            UpdateGameList()
-
-            currentHost = host
-            AddHandler host.EventHostUncreate, AddressOf host_EventHostUncreate
-            AddHandler host.EventHostDisposed, AddressOf host_EventHostDisposed
-            AddHandler host.EventGameWon, AddressOf host_EventGameWon
-
-            If isWhisper Then
-                SendChat(String.Format("/w {1} Creating Game: [{0}] started by [{1}]...", host.GetGameName, host.GetCallerName))
+            If isPublic Then
+                state = GAME_PUBLIC
             Else
-                SendChat(String.Format("/me : Creating Game: [{0}] started by [{1}]...", host.GetGameName, host.GetCallerName))
+                state = GAME_PRIVATE
             End If
 
-            'Threading.Thread.Sleep(1000)
-            bnet.GetFriendList()    'MrJag|0.8c|reserve|get the current list of friends
-            bnet.GetClanList()      'MrJag|0.8c|reserve|get the current list of clan members
-            bnet.GameCreate(labelChannel.Text, state, numPlayers, gameName, bnet.GetUniqueUserName, 0, map.GetMapPath, map.GetMapCRC)
-        Else
-            If currentHost.GetGameName.Length > 0 Then
+            host = New clsGameHost(GetAdminList, state, numPlayers, gameName, bnet.GetUniqueUserName, callerName, bnet.GetHostPort, map.GetMapPath, map.GetMapSize, map.GetMapInfo, map.GetMapCRC, bnet, data)
+            If host.HostStart Then
+                listHost.Add(host)
+                UpdateGameList()
+
+                currentHost = host
+                AddHandler host.EventHostUncreate, AddressOf host_EventHostUncreate
+                AddHandler host.EventHostDisposed, AddressOf host_EventHostDisposed
+                AddHandler host.EventGameWon, AddressOf host_EventGameWon
+
                 If isWhisper Then
-                    SendChat(String.Format("/w {0} Game: [{1}] is waiting", owner, currentHost.GetGameName))
+                    SendChat(String.Format("/w {1} Creating Game: [{0}] started by [{1}]...", host.GetGameName, host.GetCallerName))
                 Else
-                    SendChat(String.Format("/me : Game: [{0}] is waiting", currentHost.GetGameName))
+                    SendChat(String.Format("/me : Creating Game: [{0}] started by [{1}]...", host.GetGameName, host.GetCallerName))
                 End If
+
+                'Threading.Thread.Sleep(1000)
+                bnet.GetFriendList()    'MrJag|0.8c|reserve|get the current list of friends
+                bnet.GetClanList()      'MrJag|0.8c|reserve|get the current list of clan members
+                bnet.GameCreate(labelChannel.Text, state, numPlayers, gameName, bnet.GetUniqueUserName, 0, map.GetMapPath, map.GetMapCRC)
             Else
-                If isWhisper Then
-                    SendChat(String.Format("/w {0} Hosting Failed, Possible Port In Use", owner))
+                If currentHost.GetGameName.Length > 0 Then
+                    If isWhisper Then
+                        SendChat(String.Format("/w {0} Game: [{1}] is waiting", owner, currentHost.GetGameName))
+                    Else
+                        SendChat(String.Format("/me : Game: [{0}] is waiting", currentHost.GetGameName))
+                    End If
                 Else
-                    SendChat(String.Format("/me : Hosting Failed, Possible Port In Use"))
+                    If isWhisper Then
+                        SendChat(String.Format("/w {0} Hosting Failed, Possible Port In Use", owner))
+                    Else
+                        SendChat(String.Format("/me : Hosting Failed, Possible Port In Use"))
+                    End If
                 End If
             End If
+        Else
+            SendChat(String.Format("/me : Maxgames has been reached ({0})", data.botSettings.maxGames))
         End If
     End Sub
     'Netrunner|0.1|root admin commands|
@@ -1296,6 +1338,8 @@ Public Class frmLainEthLite
             If name.Length > 0 AndAlso listUser.Items.Contains(name) = False Then
                 listUser.Items.Add(name)
                 SaveUserTable()
+                CurrentAdminList.Add(name)
+                bot = New clsBotCommandHostChannel(GetAdminList())
                 SendChat(String.Format("/w {0} {1} is an admin now.", RootAdmin, name))
             Else
                 SendChat(String.Format("/w {0} {1} is already an admin.", RootAdmin, name))
@@ -1304,9 +1348,26 @@ Public Class frmLainEthLite
             If name.Length > 0 AndAlso listUser.Items.Contains(name) Then
                 listUser.Items.Remove(name)
                 SaveUserTable()
+                CurrentAdminList.Remove(name)
+                bot = New clsBotCommandHostChannel(GetAdminList())
                 SendChat(String.Format("/w {0} {1} is no longer an admin.", RootAdmin, name))
             Else
                 SendChat(String.Format("/w {0} {1} was never an admin.", RootAdmin, name))
+            End If
+        End If
+    End Sub
+    Private Sub bot_EventMaxGames(ByVal max As Byte) Handles bot.EventBotMaxGames
+        If max >= 0 And max <= 255 Then
+            Dim oldvalue = data.botSettings.maxGames
+            data.botSettings.maxGames = max
+            If max > oldvalue Then
+                SendChat(String.Format("/w {0} the max gamecap has been increased from {1} games to {2} games.", RootAdmin, oldvalue, max))
+            Else
+                If max = oldvalue Then
+                    SendChat(String.Format("/w {0} the max gamecap was {1} games.", RootAdmin, max))
+                Else
+                    SendChat(String.Format("/w {0} the max gamecap has been decreased from {1} games to {2} games.", RootAdmin, oldvalue, max))
+                End If
             End If
         End If
     End Sub
@@ -1378,6 +1439,8 @@ Public Class frmLainEthLite
         Me.ReflectEngineState()
         Me.buttonGo.Focus()
 
+        CurrentAdminList = New ArrayList
+
         aliveTimer = New Timers.Timer
         aliveTimer.Interval = 1000
         aliveCounter = 0
@@ -1396,7 +1459,7 @@ Public Class frmLainEthLite
             End If
             Start()
         Else
-            Me.WindowState = System.Windows.Forms.FormWindowState.Normal
+            Me.WindowState = FormWindowState.Normal
             Me.trayIcon.Visible = True
         End If
     End Sub
@@ -1457,11 +1520,10 @@ Public Class frmLainEthLite
     End Sub
     Private Sub contextShow_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles contextShow.Click
         If Me.Visible = False Then
-            Me.Show()
+            Me.Visible = True
             Me.WindowState = FormWindowState.Normal
-            Me.BringToFront()
         Else
-            Me.Hide()
+            Me.Visible = False
         End If
     End Sub
     Private Sub contextExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles contextExit.Click
@@ -1508,6 +1570,11 @@ Public Class frmLainEthLite
         End If
     End Sub
     Private Function Start() As Boolean
+        If listUser.Items.Contains(RootAdmin) = False Then
+            listUser.Items.Add(RootAdmin)
+            SaveUserTable()
+            CurrentAdminList.Add(RootAdmin)
+        End If
         Try
 
             If bnet.IsEngineRunning() Then
@@ -1541,21 +1608,12 @@ Public Class frmLainEthLite
 
     End Function
     Private Function GetAdminList() As String()
-        Dim listadmin As ArrayList
-        Dim name As String
-
         Try
-            listadmin = New ArrayList
-            For Each name In listUser.Items
-                listadmin.Add(name)
-            Next
-
-            Return CType(listadmin.ToArray(GetType(String)), String())
+            Return CType(CurrentAdminList.ToArray(GetType(String)), String())
         Catch ex As Exception
             Debug.WriteLine(ex)
             Return New String() {}
         End Try
-
     End Function
     Private Sub SendChat(ByVal chat As String)
         bnet.SendChatToQueue(New clsBNETChatMessage(TrimNewLine(chat), ProjectLainVersion, False))
@@ -1654,6 +1712,8 @@ Public Class frmLainEthLite
         name = txtUserName.Text.Trim
         If name.Length > 0 AndAlso listUser.Items.Contains(name) = False Then
             listUser.Items.Add(name)
+            SaveUserTable()
+            CurrentAdminList.Add(name)
             txtUserName.Text = ""
         End If
     End Sub
@@ -1662,6 +1722,8 @@ Public Class frmLainEthLite
         name = txtUserName.Text.Trim
         If name.Length > 0 AndAlso listUser.Items.Contains(name) Then
             listUser.Items.Remove(name)
+            SaveUserTable()
+            CurrentAdminList.Remove(name)
         End If
     End Sub
     Private Sub UpdateGameList()
@@ -1740,5 +1802,24 @@ Public Class frmLainEthLite
 
     Private Sub CheckBox2_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CheckBox2.CheckedChanged
         data.botSettings.enable_LCPings = CheckBox2.Checked
+    End Sub
+
+    Private Sub trayIcon_MouseDown(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles trayIcon.MouseDown
+        Me.TopMost = True
+    End Sub
+    Private Sub trayIcon_MouseUp(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles trayIcon.MouseUp
+        Me.TopMost = False
+    End Sub
+
+    Private Sub TextBox3_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox3.TextChanged
+        If IsNumeric(TextBox3.Text) AndAlso TextBox3.Text <> "" Then
+            Dim value As Integer = CInt(TextBox3.Text)
+            value = Math.Min(value, 255)
+            value = Math.Max(value, 0)
+            data.botSettings.maxGames = CByte(value)
+            TextBox3.Text = CStr(data.botSettings.maxGames)
+        Else
+            TextBox3.Text = CStr(data.botSettings.maxGames)
+        End If
     End Sub
 End Class

@@ -142,7 +142,7 @@ Public Class clsHostPlayer
 
         whoisTimer = New Timers.Timer
         whoisTimer.Interval = 1000 'ms
-        whoisTimer.Start()
+        'whoisTimer.Start()
     End Sub
 
     Public Function isLoaded() As Boolean
@@ -223,6 +223,10 @@ Public Class clsHostPlayer
     Public Sub SpoofCheck()
         whoisTimer.Start()
     End Sub
+
+    Public Sub cancelSpoofCheck()
+        whoisTimer.Stop()
+    End Sub
     Private Sub whoisTimer_Elapsed(ByVal sender As Object, ByVal e As System.Timers.ElapsedEventArgs) Handles whoisTimer.Elapsed
         Static isRunning As Boolean = False
         Try
@@ -235,8 +239,6 @@ Public Class clsHostPlayer
         Catch ex As Exception
         End Try
     End Sub
-
-
 
 End Class
 #End Region

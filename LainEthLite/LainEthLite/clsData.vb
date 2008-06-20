@@ -1,19 +1,105 @@
-﻿Public Class clsData
+﻿#Region "FLAGS"
+<Flags()> _
+Public Enum adminFlags As Integer
+    NORMAL = 0
+    SAY = 1
+    HOST = 2            'host, hostby, pub, priv
+    UNHOST = 4
+    VERSION = 8
+    GETGAMES = 16
+    MAP = 32
+    RECONNECT = 64
+    CHANNEL = 128
+    ADDADMIN = 256
+    REMOVEADMIN = 512
+    START = 1024        'start, end, abort
+    OPEN = 2048         'open, close, comp
+    SWAP = 4096
+    KICK = 8192
+    PING = 16384
+    FROM = 32768
+    HOLD = 65536
+    ADMIN = 131072
+    REFRESH = 262144
+    SPOOF = 524288
+    LOCK = 1048576      'lock and unlock
+    SP = 2097152
+    LATENCY = 4194304
+
+End Enum
+#End Region
+
+Public Class clsData
     Public userList As clsUserList
+    Public adminList As clsAdminList
+
     Public botSettings As clsBotSettings
 
     Public Sub New()
         userList = New clsUserList
+        adminList = New clsAdminList
         botSettings = New clsBotSettings
-    End Sub
-
-    Private Sub getUser()
-
     End Sub
 
 End Class
 
+#Region "ADMIN DATA"
+Public Class clsAdminList
+    Private adminList As ArrayList
+
+    Public Sub New()
+        adminList = New ArrayList
+    End Sub
+
+    Public Function getUser(ByVal name As String) As clsAdmin
+        For Each user As clsAdmin In adminList
+            Debug.WriteLine(String.Format("getUser :: comparing [{0}] to [{1}]", user.name.ToLower, name.ToLower))
+            If user.name.ToLower = name.ToLower Then
+                Return user
+            End If
+        Next
+
+        Debug.WriteLine(String.Format("Adding {0} as a new user.", name))
+        adminList.Add(New clsAdmin(name))
+        For Each user As clsAdmin In adminList
+            Debug.WriteLine(String.Format("getUser :: comparing [{0}] to [{1}]", user.name.ToLower, name.ToLower))
+            If user.name.ToLower = name.ToLower Then
+                Return user
+            End If
+        Next
+
+        Return New clsAdmin
+    End Function
+
+End Class
+Public Class clsAdmin
+
+    Public name As String       'Battle.net name
+    Public flags As adminFlags
+
+    Public Sub New()
+        Me.name = ""
+        Me.flags = adminFlags.NORMAL
+    End Sub
+
+    Public Sub New(ByVal name As String)
+        Me.name = name
+        Me.flags = adminFlags.NORMAL
+    End Sub
+
+    Public Sub setAccess(ByVal flag As adminFlags)
+        'todo
+        'Client c = new Client();
+        'c.ClientState = (ClientStates.HasDiscount|ClientStates.IsSupplier|ClientStates.IsOverdra
+        flags = flags Or flag
+        Beep()
+    End Sub
+End Class
+#End Region
+
+#Region "USER DATA"
 Public Class clsUser
+
     'user details
     Public name As String          'Battle.net name
     Public realm As Byte           'Server realm (useast, uswest, eurobattle.net, etc)
@@ -77,7 +163,7 @@ Public Class clsUser
         Me.creepDeny = 0            'number of creep denies
 
     End Sub
-    Public Sub New(ByVal name As String, ByVal accessLevel As Byte, ByRef intIP As Byte(), ByVal extIP As Byte())
+    Public Sub New(ByVal name As String, ByRef intIP As Byte(), ByVal extIP As Byte())
 
         'user details
         Me.name = name              'Battle.net name
@@ -85,7 +171,7 @@ Public Class clsUser
         Me.firstDate = Now          'Date player was first detected
         Me.recentGame = Now         'Date player was last detected
         Me.score = 0                'Will be used to calculate ranking
-        Me.userLevel = accessLevel  '0 = none/banned, 10 = rank checking, 20 = game hosting, 100 = full admin
+        Me.userLevel = 0 'accessLevel  '0 = none/banned, 10 = rank checking, 20 = game hosting, 100 = full admin
 
         'network details
         Me.internalIP = intIP       'Last known internal IP address
@@ -110,6 +196,7 @@ Public Class clsUser
         Me.creepDeny = 0            'number of creep denies
 
     End Sub
+
 End Class
 Public Class clsUserList
     Private userArrayList As ArrayList
@@ -127,20 +214,10 @@ Public Class clsUserList
         Return New clsUser
     End Function
 
-    Public Sub addUser(ByVal name As String, ByVal accessLevel As Integer, ByVal internalIP As Byte(), ByVal externalIP As Byte())
-        userArrayList.Add(New clsUser(name, CByte(accessLevel), internalIP, externalIP))
+    Public Sub addUser(ByVal name As String, ByVal internalIP As Byte(), ByVal externalIP As Byte())
+        userArrayList.Add(New clsUser(name, internalIP, externalIP))
 
     End Sub
-
-    Public Function setAccess(ByVal name As String, ByVal accessLevel As Integer) As Boolean
-        For Each user As clsUser In userArrayList
-            If user.name.ToLower = name.ToLower Then
-                user.userLevel = CByte(accessLevel)
-                Return True
-            End If
-        Next
-        Return False
-    End Function
 
     Public Function fixName(ByVal name As String) As String
         For Each user As clsUser In userArrayList
@@ -152,6 +229,9 @@ Public Class clsUserList
     End Function
 
 End Class
+#End Region
+
+#Region "BOT SETTINGS"
 Public Class clsBotSettings
     'configuration
     Public wc3Path As String       'Path to war3.exe
@@ -174,6 +254,7 @@ Public Class clsBotSettings
     'preferences
     Public countdown As Integer    '0 to disable, 1+ to enable
     Public maxPing As Integer      'Maximum ping before a player gets kicked
+    Public maxGames As Byte         'Maximum games allowed to be hosted at a time
 
     Public Sub New()
         'configuration
@@ -197,9 +278,12 @@ Public Class clsBotSettings
         'preferences
         Me.countdown = 0                                    '0 to disable, 1+ to enable
         Me.maxPing = 150                                    'Maximum ping before a player gets kicked
+        Me.maxGames = 255                                   'Maximum games allowed to be hosted at a
     End Sub
 
 End Class
+#End Region
+
 Public Class clsRank
 
     Private playerID As Long        'Unique ID used to identify players

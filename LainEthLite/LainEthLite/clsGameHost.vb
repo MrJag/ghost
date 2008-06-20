@@ -218,7 +218,7 @@ Public Class clsGameHost
         AddHandler bnet.EventIncomingFriendList, AddressOf EventMessage_IncomingFriendList
         AddHandler bnet.EventIncomingClanList, AddressOf EventMessage_IncomingClanList
         AddHandler botLobby.EventBotSay, AddressOf EventMessage_SendChat
-        AddHandler botLobby.EventDataSetAccess, AddressOf EventData_SetAccess
+        'AddHandler botLobby.EventDataSetAccess, AddressOf EventData_SetAccess
 
     End Sub
     Public Function GetCallerName() As String
@@ -356,16 +356,14 @@ Public Class clsGameHost
 
 #Region "bot lobby event"
 
-    Private Sub EventData_SetAccess(ByVal name As String, ByVal accessLevel As Integer)
+    Private Sub EventData_SetAccess(ByVal name As String, ByVal accessLevel As adminFlags)
         Dim username As String = ""
+
         username = data.userList.fixName(name)
 
         If username.Length > 0 Then
-            If data.userList.setAccess(name, accessLevel) Then
-                SendChat(String.Format("Updating {0}'s access level to {1}", username, accessLevel))
-            Else
-                SendChat("Error:  Update failed.")
-            End If
+            data.adminList.getUser(name).setAccess(accessLevel)
+            SendChat(String.Format("Updating {0}'s access level to {1}", username, accessLevel))
         Else
             SendChat(String.Format("Error: {0} is not a valid user", name))
         End If
@@ -1108,9 +1106,17 @@ Public Class clsGameHost
                                 user = data.userList.getUser(player.GetName)
                                 If user.name = "" Then
                                     SendChat(String.Format("Adding {0} as a new player in the local database.", player.GetName))
-                                    data.userList.addUser(player.GetName, 1, player.GetSock.GetLocalIP, player.GetSock.GetRemoteIP)
+                                    data.userList.addUser(player.GetName, player.GetSock.GetLocalIP, player.GetSock.GetRemoteIP)
                                 Else
-                                    SendChat(String.Format("{0} last played {1} day(s) ago.", player.GetName, Now.Subtract(user.recentGame).Days))
+                                    If user.userLevel = 0 Then
+                                        'player.cancelSpoofCheck()
+                                        ClientStop(player.GetSock)
+                                        SendChat(String.Format("{0} is blacklisted and cannot join this game.", player.GetName))
+                                        Exit Select
+                                    End If
+                                    If user.userLevel > 10 Then
+                                        SendChat(String.Format("{0} last played {1} day(s) ago.", player.GetName, Now.Subtract(user.recentGame).Days))
+                                    End If
                                     If user.userLevel >= 20 Then
                                         'SendChat(String.Format("{0} already exists in the local database.", player.GetName))
 
@@ -1120,7 +1126,6 @@ Public Class clsGameHost
                                         If SID <> 255 Then
                                             botLobby_EventBotSlot(True, SID)  'kick the non reserved player so the reserved player can join.
                                         End If
-
                                     ElseIf (reserveList.Contains(player.GetName.ToLower)) Then  'Check to see if the player is on the reserve list
                                         SendChat(String.Format("{0} has VIP status and is trying to join this game.", player.GetName))
                                         SID = protocol.GetReserveSlot(reserveList)
@@ -1141,8 +1146,8 @@ Public Class clsGameHost
                                 PID = protocol.PlayerAdd(player.GetName(), player.GetSock, player.GetExternalIP, player.GetInternalIP)
                                 If PID <> 255 Then
                                     Debug.WriteLine(String.Format("Adding spoofcheck handler for {0}", player.GetName))
-
                                     AddHandler protocol.GetPlayerFromPID(PID).EventSpoofCheck, AddressOf OnEventMessage_SpoofCheck
+                                    player.SpoofCheck()
 
                                     Debug.WriteLine(String.Format("Player:{0} PID:{1} SID:{5} Internal:{2} External:{3} PlayerNumExclusive:{4} ", player.GetName, PID, clsHelper.PrintArray(player.GetInternalIP), clsHelper.PrintArray(player.GetExternalIP), playerCount, protocol.GetPlayerSlot(PID).GetSID))
                                     'Debug.WriteLine(player.GetName() & " : " & PID & " " & clsHelper.PrintArray(player.GetInternalIP) & " " & clsHelper.PrintArray(player.GetExternalIP))
@@ -1461,8 +1466,8 @@ Public Class clsGameHost
 
             hashClient.Remove(client)
             client.Stop()
-            RemoveHandler client.eventMessage, AddressOf client_OnEventMessage
-            RemoveHandler client.eventError, AddressOf client_OnEventError
+            RemoveHandler client.EventMessage, AddressOf client_OnEventMessage
+            RemoveHandler client.EventError, AddressOf client_OnEventError
             RemoveHandler protocol.GetPlayerFromSocket(client).EventSpoofCheck, AddressOf OnEventMessage_SpoofCheck
 
             If isGameLoaded = False AndAlso countdownCounter >= 0 Then

@@ -3,6 +3,13 @@ Option Strict On
 
 Imports LainBnetCore
 
+Enum action As Byte
+    INVALID
+    ADD
+    REMOVE
+    SHOW
+End Enum
+
 Public Class clsBotCommandClassifier
     Public Enum BotCommandType As Integer
         INVALID
@@ -17,6 +24,7 @@ Public Class clsBotCommandClassifier
         CHANNEL
         ADDADMIN
         REMOVEADMIN
+        MAXGAMES
 
         'lobby  
         START
@@ -103,6 +111,64 @@ Public Class clsBotCommandClassifier
     End Function
 End Class
 
+Public Class clsBotAdminClassifier
+    
+    Private commandType As adminFlags
+    Private commandParameter() As String
+    Private commandPayload As String
+
+    Public Sub New()
+        commandType = adminFlags.NORMAL
+        commandParameter = New String() {}
+        commandPayload = ""
+    End Sub
+    Public Sub New(ByVal command As String)
+        Dim param As String()
+        Dim i As Integer
+        Dim list As ArrayList
+
+        param = command.Split(Convert.ToChar(" "))
+        If param.Length >= 1 Then
+
+            commandType = adminFlags.NORMAL
+            For Each comm As adminFlags In [Enum].GetValues(GetType(adminFlags))
+                If param(0).ToLower = String.Format("{0}{1}", frmLainEthLite.data.botSettings.commandTrigger, comm.ToString.ToLower()) Then
+                    commandType = comm
+                    Exit For
+                End If
+            Next
+
+            commandPayload = ""
+            If param.Length > 1 Then
+                commandPayload = command.Substring(param(0).Length + 1)
+            End If
+            commandParameter = New String() {}
+            If param.Length >= 2 Then
+                list = New ArrayList
+                For i = 1 To param.Length - 1
+                    list.Add(param(i))
+                Next
+                commandParameter = CType(list.ToArray(GetType(String)), String())
+            End If
+        Else
+            commandType = adminFlags.NORMAL
+            commandParameter = New String() {}
+            commandPayload = ""
+        End If
+
+
+    End Sub
+    Public Function GetCommandType() As adminFlags
+        Return commandType
+    End Function
+    Public Function commandParamameter() As String()
+        Return commandParameter
+    End Function
+    Public Function GetPayLoad() As String
+        Return commandPayload
+    End Function
+End Class
+
 Public MustInherit Class clsBotCommand
     Protected adminName() As String
 
@@ -129,6 +195,11 @@ Public MustInherit Class clsBotCommand
                     Return True
                 End If
             Next
+            If frmLainEthLite.data.userList.getUser(user).userLevel >= 20 Then
+                Return True
+            End If
+
+
             Return False
         Catch ex As Exception
             Return False
@@ -150,6 +221,7 @@ Public Class clsBotCommandHostChannel
     Public Event EventBotToggleReconnect(ByVal toggle As Boolean)
     Public Event EventBotChangeChannel(ByVal channelName As String)
     Public Event EventBotModifyAdmin(ByVal name As String, ByVal add As Boolean)
+    Public Event EventBotMaxGames(ByVal max As Byte)
 
     Public Sub New(ByVal adminName() As String)
         MyBase.New(adminName)
@@ -272,6 +344,14 @@ Public Class clsBotCommandHostChannel
                                 RaiseEvent EventBotResponse("!REMOVEADMIN [name]", True, data.GetUser)
                             End If
                         End If
+                    Case clsBotCommandClassifier.BotCommandType.MAXGAMES
+                        If command.commandParamameter.Length = 1 AndAlso CStr(data.GetUser).ToLower = frmLainEthLite.RootAdmin.ToLower Then
+                            RaiseEvent EventBotMaxGames(CByte(command.commandParamameter(0).ToLower))
+                        Else
+                            If CStr(data.GetUser).ToLower = frmLainEthLite.RootAdmin Then
+                                RaiseEvent EventBotResponse("!MAXGAMES [0 < X < 255]", True, data.GetUser)
+                            End If
+                        End If
                     Case clsBotCommandClassifier.BotCommandType.MAP
                         If command.commandParamameter.Length > 0 Then
                             RaiseEvent EventBotMap(isWhisper, data.GetUser, command.GetPayLoad)
@@ -324,6 +404,53 @@ Public Class clsBotCommandHostChannel
                                 RaiseEvent EventBotHost(False, 10, game, data.GetUser, isWhisper, data.GetUser)
                             End If
                         End If
+                    Case clsBotCommandClassifier.BotCommandType.ADMIN
+                        '-admin add wimble host 
+                        'cmd    0   1      2    3    4
+                        Dim output As New System.Text.StringBuilder
+
+                        Dim actionType As Byte = action.INVALID
+
+                        If command.commandParamameter(0).ToLower = "add" Then
+                            actionType = action.ADD
+                        ElseIf command.commandParamameter(0).ToLower = "rem" Or command.commandParamameter(0).ToLower = "remove" Then
+                            actionType = action.REMOVE
+                        ElseIf command.commandParamameter(0).ToLower = "show" Then
+                            actionType = action.SHOW
+                        End If
+
+                        If actionType = action.ADD Or actionType = action.REMOVE Then
+                            If actionType = action.ADD Then
+                                output.Append(String.Format("Added to {0}: ", command.commandParamameter(1)))
+                            ElseIf actionType = action.REMOVE Then
+                                output.Append(String.Format("Removed from {0}: ", command.commandParamameter(1)))
+                            End If
+                            For i = 2 To command.commandParamameter.Length - 1
+                                For Each flag As adminFlags In [Enum].GetValues(GetType(adminFlags))
+                                    Debug.WriteLine(String.Format("comparing [{0}] to [{1}]", command.commandParamameter(i).ToLower, flag.ToString.ToLower))
+                                    If command.commandParamameter(i).ToLower = flag.ToString.ToLower Then
+                                        Debug.WriteLine(String.Format("Getting user [{0}] and setting access flag [{1}]", command.commandParamameter(1), flag.ToString))
+                                        'Dim adminUser As clsAdmin
+                                        'adminUser = frmLainEthLite.data.adminList.getUser(command.commandParamameter(1).ToString)
+                                        'Debug.WriteLine("setting access")
+                                        'adminUser.setAccess(flag)
+                                        frmLainEthLite.data.adminList.getUser(command.commandParamameter(1)).setAccess(flag)
+                                        output.Append(String.Format("{0}, ", flag.ToString))
+                                        Exit For
+                                    End If
+                                Next
+                            Next
+                        ElseIf actionType = action.SHOW Then
+                            output.Append(String.Format("Access for {0}: ", command.commandParamameter(1)))
+                            For Each flag As adminFlags In [Enum].GetValues(GetType(adminFlags))
+                                If flag <> 0 Then
+                                    If ((frmLainEthLite.data.adminList.getUser(command.commandParamameter(1)).flags And flag) = flag) Then
+                                        output.Append(String.Format("{0}, ", flag.ToString))
+                                    End If
+                                End If
+                            Next
+                        End If
+                        RaiseEvent EventBotResponse(output.ToString, isWhisper, data.GetUser)
                 End Select
             End If
             Return True
@@ -355,7 +482,7 @@ Public Class clsBotCommandHostLobby
     Public Event EventBotLock(ByVal username As String)
     Public Event EventBotUnlock(ByVal username As String)
     Public Event EventBotShufflePlayers()
-    Public Event EventDataSetAccess(ByVal name As String, ByVal accessLevel As Integer)
+    'Public Event EventDataSetAccess(ByVal name As String, ByVal accessLevel As Integer)
 
 
     Public Sub New(ByVal callerName As String, ByVal adminName As String())
@@ -493,22 +620,54 @@ Public Class clsBotCommandHostLobby
                     RaiseEvent EventBotUnlock(user)
                 Case clsBotCommandClassifier.BotCommandType.SP    'MrJag|0.9b|hold|
                     RaiseEvent EventBotShufflePlayers()
-                Case clsBotCommandClassifier.BotCommandType.ADMIN    'MrJag|0.9b|hold|
-                    'MsgBox(String.Format("stage 0:  {0} {1} {2} {3}", command.commandParamameter(0), command.commandParamameter(1), command.commandParamameter(2), command.commandParamameter(3)))
-                    If command.commandParamameter(0).ToLower = "set" AndAlso command.commandParamameter(1).ToLower = "access" Then
-                        'MsgBox(String.Format("stage 1:  {0} {1} {2} {3} {4}", command.commandParamameter(0), command.commandParamameter(1), command.commandParamameter(2), command.commandParamameter(3), command.commandParamameter(4)))
-                        If IsNumeric(command.commandParamameter(3)) Then
-                            'MsgBox(String.Format("stage 2:  {0} {1} {2} {3} {4}", command.commandParamameter(0), command.commandParamameter(1), command.commandParamameter(2), command.commandParamameter(3), command.commandParamameter(4)))
-                            Dim accessLevel As Integer = CInt(command.commandParamameter(3))
-                            accessLevel = Math.Min(255, accessLevel)
-                            accessLevel = Math.Max(0, accessLevel)
-                            RaiseEvent EventDataSetAccess(command.commandParamameter(2), accessLevel)
-                        Else
-                            RaiseEvent EventBotResponse("-ADMIN SET ACCESS [name] [0..255]")
-                        End If
-                    Else
-                        RaiseEvent EventBotResponse(String.Format("{0} {1} {2} {3} {4}", command.commandParamameter(0), command.commandParamameter(1), command.commandParamameter(2), command.commandParamameter(3), command.commandParamameter(4)))
+                Case clsBotCommandClassifier.BotCommandType.ADMIN
+                    '-admin add wimble host 
+                    'cmd    0   1      2    3    4
+                    Dim output As New System.Text.StringBuilder
+
+                    Dim actionType As Byte = action.INVALID
+
+                    If command.commandParamameter(0).ToLower = "add" Then
+                        actionType = action.ADD
+                    ElseIf command.commandParamameter(0).ToLower = "rem" Or command.commandParamameter(0).ToLower = "remove" Then
+                        actionType = action.REMOVE
+                    ElseIf command.commandParamameter(0).ToLower = "show" Then
+                        actionType = action.SHOW
                     End If
+
+                    If actionType = action.ADD Or actionType = action.REMOVE Then
+                        If actionType = action.ADD Then
+                            output.Append(String.Format("Added to {0}: ", command.commandParamameter(1)))
+                        ElseIf actionType = action.REMOVE Then
+                            output.Append(String.Format("Removed from {0}: ", command.commandParamameter(1)))
+                        End If
+                        For i = 2 To command.commandParamameter.Length - 1
+                            For Each flag As adminFlags In [Enum].GetValues(GetType(adminFlags))
+                                Debug.WriteLine(String.Format("comparing [{0}] to [{1}]", command.commandParamameter(i).ToLower, flag.ToString.ToLower))
+                                If command.commandParamameter(i).ToLower = flag.ToString.ToLower Then
+                                    Debug.WriteLine(String.Format("Getting user [{0}] and setting access flag [{1}]", command.commandParamameter(1), flag.ToString))
+                                    'Dim adminUser As clsAdmin
+                                    'adminUser = frmLainEthLite.data.adminList.getUser(command.commandParamameter(1).ToString)
+                                    'Debug.WriteLine("setting access")
+                                    'adminUser.setAccess(flag)
+                                    frmLainEthLite.data.adminList.getUser(command.commandParamameter(1)).setAccess(flag)
+                                    output.Append(String.Format("{0}, ", flag.ToString))
+                                    Exit For
+                                End If
+                            Next
+                        Next
+                    ElseIf actionType = action.SHOW Then
+                        output.Append(String.Format("Access for {0}: ", command.commandParamameter(1)))
+                        For Each flag As adminFlags In [Enum].GetValues(GetType(adminFlags))
+                            If flag <> 0 Then
+                                If ((frmLainEthLite.data.adminList.getUser(command.commandParamameter(1)).flags And flag) = flag) Then
+                                    output.Append(String.Format("{0}, ", flag.ToString))
+                                End If
+                            End If
+                        Next
+                    End If
+                    RaiseEvent EventBotResponse(output.ToString)
+
             End Select
             Return True
         Catch ex As Exception
