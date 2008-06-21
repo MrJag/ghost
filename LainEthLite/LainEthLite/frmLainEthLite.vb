@@ -999,7 +999,7 @@ Public Class frmLainEthLite
                     If CStr(row("reconnect")) = "True" Then
                         data.botSettings.enable_reconnect = True
                     Else
-                        data.botSettings.enable_reconnect = True
+                        data.botSettings.enable_reconnect = False
                     End If
                     CheckBox1.Checked = data.botSettings.enable_reconnect
                 Else
