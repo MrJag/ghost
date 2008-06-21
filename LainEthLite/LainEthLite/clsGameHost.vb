@@ -928,7 +928,6 @@ Public Class clsGameHost
             If isRunning = False Then
                 isRunning = True
 
-                Dim maxPing As Integer = 150
                 Dim kickList As ArrayList = New ArrayList
                 Dim kickText As System.Text.StringBuilder = New System.Text.StringBuilder
                 Dim pingComplete As Boolean = True
@@ -939,7 +938,7 @@ Public Class clsGameHost
                     If player.GetPID = protocol.GetHostPID Then
                         'skip
                     Else
-                        If player.GetPing >= 0 AndAlso player.GetPing > maxPing Then
+                        If player.GetPing >= 0 AndAlso player.GetPing > frmLainEthLite.data.botSettings.maxPing Then
                             For Each slot In protocol.GetSlotList
                                 If (slot.GetPID = player.GetPID) And (reserveList.Contains(player.GetName.ToLower) = False) Then
                                     kickList.Add(slot.GetSID)
