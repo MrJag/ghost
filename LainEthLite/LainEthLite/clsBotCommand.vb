@@ -587,7 +587,7 @@ Public Class clsBotCommandHostLobby
                             number = CType(command.commandParamameter(0), Byte)
                             number2 = CType(command.commandParamameter(1), Byte)
 
-                            If number >= 1 AndAlso number <= 12 AndAlso number2 >= 1 AndAlso number2 <= 12 Then
+                            If number >= 1 AndAlso number <= 12 AndAlso number2 >= 1 AndAlso number2 <= 3 Then
                                 RaiseEvent EventBotComputer(CType(number - 1, Byte), CType(number2 - 1, Byte))
                                 Exit Select
                             End If
