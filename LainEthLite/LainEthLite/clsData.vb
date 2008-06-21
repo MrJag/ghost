@@ -255,6 +255,7 @@ Public Class clsBotSettings
     Public enable_refreshDisplay As Boolean    'display output when refreshing a game?
     Public enable_autoPingKick As Boolean      'auto-kick players above the max threshhold?
     Public enable_LCPings As Boolean           'List Checker uses pings that are half the standard value
+    Public enable_experimentalPings As Boolean 'Experimental pings uses standard deviations to calculate with.
 
     'preferences
     Public countdown As Integer    '0 to disable, 1+ to enable
@@ -279,10 +280,11 @@ Public Class clsBotSettings
         Me.enable_refreshDisplay = False                    'display output when refreshing a game?
         Me.enable_autoPingKick = True                       'auto-kick players above the max threshhold?
         Me.enable_LCPings = False                           '0 = normal, 255 = LC
+        Me.enable_experimentalPings = False                 'Experimental pings uses standard deviations to calculate with.
 
         'preferences
         Me.countdown = 0                                    '0 to disable, 1+ to enable
-        Me.maxPing = 500                                    'Maximum ping before a player gets kicked
+        Me.maxPing = 150                                    'Maximum ping before a player gets kicked
         Me.maxGames = 255                                   'Maximum games allowed to be hosted at a
     End Sub
 

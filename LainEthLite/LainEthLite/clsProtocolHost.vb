@@ -197,13 +197,28 @@ Public Class clsHostPlayer
         Next
         std = CLng(Math.Sqrt(CLng(sum / (pingArray.Count - 1))))
 
-        For index = 0 To pingArray.Count - 1
-            If CLng(pingArray.Item(index)) >= (mean - std) AndAlso CLng(pingArray.Item(index)) <= (mean + std) Then
-                counter += 1
-                retVal = retVal + CLng(pingArray.Item(index))
+        If (frmLainEthLite.data.botSettings.enable_experimentalPings) Then
+            'determine ping based on standard deviation.
+            For index = 0 To pingArray.Count - 1
+                If CLng(pingArray.Item(index)) >= (mean - std) AndAlso CLng(pingArray.Item(index)) <= (mean + std) Then
+                    counter += 1
+                    retVal = retVal + CLng(pingArray.Item(index))
+                End If
+            Next
+            retVal = CLng(retVal / counter)
+        Else
+            'determine ping based on older method using median values
+            pingArray.Sort() ' sort the array by ping so that the median values are in the middle
+            If (pingArray.Count Mod 2) = 0 Then
+                'even
+                retVal = CLng(pingArray.Item(CInt(pingArray.Count / 2) - 1))
+            Else
+                'odd
+                retVal = CLng(pingArray.Item(CInt((pingArray.Count + 1) / 2) - 1))
             End If
-        Next
-        retVal = CLng(retVal / counter)
+        End If
+
+
 
         If frmLainEthLite.data.botSettings.enable_LCPings = True Then
             retVal = CLng(retVal / 2) ' (divide by 2) to match LC style pings
