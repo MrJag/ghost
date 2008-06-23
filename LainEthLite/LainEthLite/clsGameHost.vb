@@ -338,7 +338,7 @@ Public Class clsGameHost
     Private Sub botGame_EventBotGameCancel() Handles botGame.EventBotGameCancel
         If isGameLoaded = True AndAlso teamWon = 255 Then 'winner not yet set
             teamWon = 10
-            AnnouceWinner(callerName, gameName, CType(listSentinelPlayer.ToArray(GetType(String)), String()), CType(listScourgePlayer.ToArray(GetType(String)), String()), CType(listReferee.ToArray(GetType(String)), String()), "canceled")
+            AnnounceWinner(callerName, gameName, CType(listSentinelPlayer.ToArray(GetType(String)), String()), CType(listScourgePlayer.ToArray(GetType(String)), String()), CType(listReferee.ToArray(GetType(String)), String()), "canceled")
             SendChat("Game is canceled")
         Else
             SendChat("Game can not be canceled or is too late to be canceled")
@@ -842,7 +842,7 @@ Public Class clsGameHost
                     SendChat(String.Format("{0} Wins!", GetTeamName(teamWon)))
                     SendChat(String.Format("Player 1:  Kills({0}), Deaths({1}), Creeps({2}), Denies({3}).", playerkills(0), playerdeaths(0), playercreeps(0), playerdenies(0)))
                     'SendChat(String.Format("{0} Has Won The Game ! Tree/Throne Down [{1}]", GetTeamName(teamWon), protocol.GetPlayerFromPID(fromPID).GetName))
-                    AnnouceWinner(callerName, gameName, CType(listSentinelPlayer.ToArray(GetType(String)), String()), CType(listScourgePlayer.ToArray(GetType(String)), String()), CType(listReferee.ToArray(GetType(String)), String()), GetTeamName(teamWon))
+                    AnnounceWinner(callerName, gameName, CType(listSentinelPlayer.ToArray(GetType(String)), String()), CType(listScourgePlayer.ToArray(GetType(String)), String()), CType(listReferee.ToArray(GetType(String)), String()), GetTeamName(teamWon))
                 End If
 
             End If
@@ -868,15 +868,15 @@ Public Class clsGameHost
                         If protocol.GetPlayerCountTeam(TEAM_SENTINEL) = 0 AndAlso protocol.GetPlayerCountTeam(TEAM_SCOURGE) > 0 Then
                             teamWon = TEAM_SCOURGE
                             SendChat(String.Format("{0} has won the game !", GetTeamName(teamWon)))
-                            AnnouceWinner(callerName, gameName, CType(listSentinelPlayer.ToArray(GetType(String)), String()), CType(listScourgePlayer.ToArray(GetType(String)), String()), CType(listReferee.ToArray(GetType(String)), String()), GetTeamName(teamWon))
+                            AnnounceWinner(callerName, gameName, CType(listSentinelPlayer.ToArray(GetType(String)), String()), CType(listScourgePlayer.ToArray(GetType(String)), String()), CType(listReferee.ToArray(GetType(String)), String()), GetTeamName(teamWon))
                         ElseIf protocol.GetPlayerCountTeam(TEAM_SCOURGE) = 0 AndAlso protocol.GetPlayerCountTeam(TEAM_SENTINEL) > 0 Then
                             teamWon = TEAM_SENTINEL
                             SendChat(String.Format("{0} has won the game !", GetTeamName(teamWon)))
-                            AnnouceWinner(callerName, gameName, CType(listSentinelPlayer.ToArray(GetType(String)), String()), CType(listScourgePlayer.ToArray(GetType(String)), String()), CType(listReferee.ToArray(GetType(String)), String()), GetTeamName(teamWon))
+                            AnnounceWinner(callerName, gameName, CType(listSentinelPlayer.ToArray(GetType(String)), String()), CType(listScourgePlayer.ToArray(GetType(String)), String()), CType(listReferee.ToArray(GetType(String)), String()), GetTeamName(teamWon))
                         ElseIf protocol.GetPlayerCountTeam(TEAM_SCOURGE) = 0 AndAlso protocol.GetPlayerCountTeam(TEAM_SENTINEL) = 0 Then
                             teamWon = 10
                             SendChat("No one remain in game")
-                            AnnouceWinner(callerName, gameName, CType(listSentinelPlayer.ToArray(GetType(String)), String()), CType(listScourgePlayer.ToArray(GetType(String)), String()), CType(listReferee.ToArray(GetType(String)), String()), "none")
+                            AnnounceWinner(callerName, gameName, CType(listSentinelPlayer.ToArray(GetType(String)), String()), CType(listScourgePlayer.ToArray(GetType(String)), String()), CType(listReferee.ToArray(GetType(String)), String()), "none")
                         End If
                     End If
 
@@ -1172,7 +1172,7 @@ Public Class clsGameHost
 
                                 End If
                             End If
-                ClientStop(command.GetPacketSocket())
+                            ClientStop(command.GetPacketSocket())
                         Case clsProtocolHost.Protocol.W3GS_MAPSIZE
                             If protocol.RECEIVE_W3GS_MAPSIZE(command.GetPacketData, mapSize) Then
                                 SendSlotInfo()
@@ -1238,7 +1238,7 @@ Public Class clsGameHost
     End Sub
 
 
-    Private Function AnnouceWinner(ByVal callerName As String, ByVal gameName As String, ByVal sentinelPlayer() As String, ByVal scourgePlayer() As String, ByVal referee() As String, ByVal winner As String) As Boolean
+    Private Function AnnounceWinner(ByVal callerName As String, ByVal gameName As String, ByVal sentinelPlayer() As String, ByVal scourgePlayer() As String, ByVal referee() As String, ByVal winner As String) As Boolean
         RaiseEvent EventGameWon(callerName, gameName, sentinelPlayer, scourgePlayer, referee, winner)
         'SendChat("Game has officially ended, a Game Shut Down will be initialised, Please make your leave or use -ABORT to abort")
         SendChat("To report a bug or for more information on Dota Host Bot, visit http://ghost.pwner.org")
