@@ -1100,8 +1100,7 @@ Public Class clsGameHost
                             Dim user As clsUser
 
                             player = protocol.RECEIVE_W3GS_REQJOIN(command.GetPacketData, command.GetPacketSocket())
-                            If player.GetName().Length > 0 Then
-
+                            If playerCount < numPlayers AndAlso player.GetName().Length > 0 Then
                                 'check to see if the user exists in the database
                                 user = data.userList.getUser(player.GetName)
                                 If user.name = "" Then
