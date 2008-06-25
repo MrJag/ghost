@@ -305,7 +305,7 @@ Public Class clsGameHost
 
     End Sub
     Private Sub client_OnEventError(ByVal errorFunction As String, ByVal errorString As String, ByVal socket As clsSocketTCP)
-        SendChat(String.Format("TCP Socket ERROR detected for {0}.", protocol.GetPlayerFromSocket(CType(socket, clsSocketTCPClient)).GetName))
+        SendChat(String.Format("{0} disconnected.", protocol.GetPlayerFromSocket(CType(socket, clsSocketTCPClient)).GetName))
         ClientStop(CType(socket, clsSocketTCPClient))
     End Sub
 #End Region
