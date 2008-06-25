@@ -84,7 +84,7 @@ Public Class clsData
 
             'work with data
             If results.Count > 0 Then
-                MsgBox(String.Format("number of returned results: {0}", results.Count))
+                'MsgBox(String.Format("number of returned results: {0}", results.Count))
                 frmLainEthLite.data.botSettings = CType(results.Next, clsBotSettings)
             Else
                 'MsgBox("No results found in the database.")
