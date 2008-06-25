@@ -208,8 +208,8 @@ Public Class clsGameHost
         endTimer = New Timers.Timer
         endTimer.Interval = 10 * 1000
 
-        refreshTimer = New Timers.Timer                             'MrJag|0.8c|refresh|
-        refreshTimer.Interval = 15 * 1000                           'MrJag|0.8c|refresh|every 15 seconds
+        refreshTimer = New Timers.Timer
+        refreshTimer.Interval = 7 * 1000    'default to 7 seconds
 
         AddHandler sockServer.eventMessage, AddressOf sockServer_OnEventMessage
         AddHandler sockServer.eventError, AddressOf sockServer_OnEventError
