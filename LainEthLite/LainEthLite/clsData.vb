@@ -1,4 +1,7 @@
-﻿#Region "FLAGS"
+﻿Imports Db4objects
+
+
+#Region "FLAGS"
 <Flags()> _
 Public Enum adminFlags As Integer
     NORMAL = 0
@@ -32,14 +35,70 @@ End Enum
 Public Class clsData
     Public userList As clsUserList
     Public adminList As clsAdminList
-
     Public botSettings As clsBotSettings
+
+    Public database As Db4o.IObjectContainer
 
     Public Sub New()
         userList = New clsUserList
         adminList = New clsAdminList
         botSettings = New clsBotSettings
+
     End Sub
+    Public Sub save_botSettings()
+        Dim results As Db4o.IObjectSet
+        Dim found As clsBotSettings = New clsBotSettings
+        Try
+            'open database
+            database = Db4o.Db4oFactory.OpenFile("ghost.db")
+
+            'check if database already contains this data
+            results = database.Get(GetType(clsBotSettings))
+            If results.Count > 0 Then
+                found = CType(results.Next, clsBotSettings)
+                database.Delete(found)
+                'MsgBox("Updating bot settings in database.")
+                database.Set(frmLainEthLite.data.botSettings)
+            Else
+                'MsgBox("Writting bot settings to database.")
+                database.Set(botSettings)
+            End If
+
+        Finally
+            'close database / commit transaction
+            database.Close()
+
+        End Try
+    End Sub
+
+    Public Sub load_botSettings()
+        Dim results As Db4o.IObjectSet
+
+        Try
+            'open database
+            database = Db4o.Db4oFactory.OpenFile("ghost.db")
+
+            'get data
+            results = database.Get(GetType(clsBotSettings))
+
+            'work with data
+            If results.Count > 0 Then
+                MsgBox(String.Format("number of returned results: {0}", results.Count))
+                For Each element As clsBotSettings In results
+                    'MsgBox(String.Format("RoC: {0}  TFT: {1}", element.rocKey, element.tftKey))
+                Next
+            Else
+                'MsgBox("No results found in the database.")
+            End If
+
+        Finally
+            'close database / commit transaction
+            database.Close()
+
+        End Try
+    End Sub
+
+
 
 End Class
 

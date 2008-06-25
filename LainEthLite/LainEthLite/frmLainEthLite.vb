@@ -1382,6 +1382,15 @@ Public Class frmLainEthLite
             SendChat(String.Format("Banned: {0} -- {1}.", name, reason))
         End If
     End Sub
+    Private Sub bot_EventBotTest(ByVal text As String) Handles bot.EventBotTest
+        If text = "save" Then
+            data.save_botSettings()
+        ElseIf text = "load" Then
+            data.load_botSettings()
+        End If
+
+
+    End Sub
 
     Private Sub bot_EventBotUnHost(ByVal isWhisper As Boolean, ByVal owner As String) Handles bot.EventBotUnHost
         Dim gamename As String

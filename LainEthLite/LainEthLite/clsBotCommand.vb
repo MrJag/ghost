@@ -50,6 +50,8 @@ Public Class clsBotCommandClassifier
         COMP
         SP         'inhouse shuffle players
 
+        TEST
+
         'game
         LATENCY
         'GAMECANCEL - replaced with END command
@@ -221,6 +223,7 @@ Public Class clsBotCommandHostChannel
     Public Event EventBotModifyAdmin(ByVal name As String, ByVal add As Boolean)
     Public Event EventBotMaxGames(ByVal max As Byte)
     Public Event EventBotBan(ByVal name As String, ByVal reason As String)
+    Public Event EventBotTest(ByVal text As String)
 
     Public Sub New(ByVal adminName() As String)
         MyBase.New(adminName)
@@ -473,6 +476,8 @@ Public Class clsBotCommandHostChannel
                             output.Append(String.Format("{0} does not exist.", username))
                         End If
                         RaiseEvent EventBotResponse(output.ToString, isWhisper, data.GetUser)
+                    Case clsBotCommandClassifier.BotCommandType.TEST
+                        RaiseEvent EventBotTest(command.commandParamameter(0))
                 End Select
             End If
             Return True
