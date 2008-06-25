@@ -8,7 +8,6 @@ Imports LainHelper
 Public Class frmLainEthLite
     Inherits System.Windows.Forms.Form
     'Netrunner|0.11|txt revolution|
-    Public Shared RootAdmin As String
     Public Shared Parameters As Integer
     Public CurrentAdminList As ArrayList
 
@@ -777,11 +776,30 @@ Public Class frmLainEthLite
         Dim ds As DataSet
 
         Try
-            ds = New DataSet(ProjectLainName)
-            If IO.File.Exists(String.Format("{0}\{1}.xml", Application.StartupPath, ProjectLainConfig)) Then
-                ds.ReadXml(String.Format("{0}\{1}.xml", Application.StartupPath, ProjectLainConfig))
-                If ds.Tables.Contains(ProjectLainConfig) Then
-                    LoadConfigurationTable(ds.Tables(ProjectLainConfig))
+            If (File.Exists("ghost.db")) Then
+                data.load_botSettings() 'load bot settings from database into data class
+                txtWar3.Text = data.botSettings.wc3Path
+                comboRealm.Text = data.botSettings.realm
+                txtROC.Text = data.botSettings.rocKey
+                txtTFT.Text = data.botSettings.tftKey
+                txtAccount.Text = data.botSettings.username
+                txtPassword.Text = data.botSettings.password
+                txtChannel.Text = data.botSettings.homeChannel
+                txtHostPort.Text = data.botSettings.port
+                TextBox2.Text = data.botSettings.commandTrigger
+                CheckBox3.Checked = data.botSettings.enable_refreshDisplay
+                TextBox1.Text = data.botSettings.RootAdmin
+                CheckBox1.Checked = data.botSettings.enable_reconnect
+                CheckBox2.Checked = data.botSettings.enable_LCPings
+                TextBox3.Text = CStr(data.botSettings.maxGames)
+            Else
+                ds = New DataSet(ProjectLainName)
+                If IO.File.Exists(String.Format("{0}\{1}.xml", Application.StartupPath, ProjectLainConfig)) Then
+                    ds.ReadXml(String.Format("{0}\{1}.xml", Application.StartupPath, ProjectLainConfig))
+                    If ds.Tables.Contains(ProjectLainConfig) Then
+                        LoadConfigurationTable(ds.Tables(ProjectLainConfig))
+                        data.save_botSettings()
+                    End If
                 End If
             End If
 
@@ -989,11 +1007,10 @@ Public Class frmLainEthLite
                     CheckBox3.Checked = data.botSettings.enable_refreshDisplay
                 End If
                 If table.Columns.Contains("rootadmin") Then
-                    RootAdmin = CStr(row("rootadmin"))
-                    TextBox1.Text = CStr(row("rootadmin"))
+                    data.botSettings.RootAdmin = CStr(row("rootadmin"))
+                    TextBox1.Text = data.botSettings.RootAdmin
                 Else
-                    RootAdmin = "UberAdmin"
-                    TextBox1.Text = "UberAdmin"
+                    TextBox1.Text = data.botSettings.RootAdmin
                 End If
                 If table.Columns.Contains("reconnect") Then
                     If CStr(row("reconnect")) = "True" Then
@@ -1035,9 +1052,14 @@ Public Class frmLainEthLite
     Private Sub SaveAll()
         Dim ds As DataSet
         Try
-            ds = New DataSet(ProjectLainName)
-            ds.Tables.Add(SaveConfigurationTable)
-            ds.WriteXml(String.Format("{0}\{1}.xml", Application.StartupPath, ProjectLainConfig))
+            'save configuration to old xml format
+            If (False) Then
+                ds = New DataSet(ProjectLainName)
+                ds.Tables.Add(SaveConfigurationTable)
+                ds.WriteXml(String.Format("{0}\{1}.xml", Application.StartupPath, ProjectLainConfig))
+            End If
+            'save configuration to new database
+            data.save_botSettings()
 
             ds = New DataSet(ProjectLainName)
             ds.Tables.Add(SaveUserTable)
@@ -1117,7 +1139,7 @@ Public Class frmLainEthLite
             row("channel") = data.botSettings.homeChannel
             row("hostport") = txtHostPort.Text
 
-            row("rootadmin") = RootAdmin
+            row("rootadmin") = data.botSettings.RootAdmin
             row("reconnect") = data.botSettings.enable_reconnect
             row("lcpings") = data.botSettings.enable_LCPings
             row("commandtrigger") = data.botSettings.commandTrigger
@@ -1323,10 +1345,10 @@ Public Class frmLainEthLite
     Private Sub bot_EventToggleReconnect(ByVal toggle As Boolean) Handles bot.EventBotToggleReconnect
         If toggle = True Then
             data.botSettings.enable_refreshDisplay = True
-            SendChat(String.Format("/w {0} Reconnect is ON", RootAdmin))
+            SendChat(String.Format("/w {0} Reconnect is ON", data.botSettings.RootAdmin))
         Else
             data.botSettings.enable_refreshDisplay = False
-            SendChat(String.Format("/w {0} Reconnect is OFF", RootAdmin))
+            SendChat(String.Format("/w {0} Reconnect is OFF", data.botSettings.RootAdmin))
         End If
         CheckBox1.Checked = data.botSettings.enable_reconnect
     End Sub
@@ -1334,7 +1356,7 @@ Public Class frmLainEthLite
     Private Sub bot_EventChangeChannel(ByVal channelName As String) Handles bot.EventBotChangeChannel
         data.botSettings.homeChannel = channelName
         bnet.SendChatToQueue(New clsBNETChatMessage(String.Format("/channel {0}", channelName), data.botSettings.username, False))
-        SendChat(String.Format("/w {0} Moved to channel {1}", RootAdmin, data.botSettings.homeChannel))
+        SendChat(String.Format("/w {0} Moved to channel {1}", data.botSettings.RootAdmin, data.botSettings.homeChannel))
     End Sub
     'Netrunner|0.1|root admin commands|
     Private Sub bot_EventModifyAdmin(ByVal name As String, ByVal add As Boolean) Handles bot.EventBotModifyAdmin
@@ -1344,9 +1366,9 @@ Public Class frmLainEthLite
                 SaveUserTable()
                 CurrentAdminList.Add(name)
                 bot = New clsBotCommandHostChannel(GetAdminList())
-                SendChat(String.Format("/w {0} {1} is an admin now.", RootAdmin, name))
+                SendChat(String.Format("/w {0} {1} is an admin now.", data.botSettings.RootAdmin, name))
             Else
-                SendChat(String.Format("/w {0} {1} is already an admin.", RootAdmin, name))
+                SendChat(String.Format("/w {0} {1} is already an admin.", data.botSettings.RootAdmin, name))
             End If
         Else
             If name.Length > 0 AndAlso listUser.Items.Contains(name) Then
@@ -1354,9 +1376,9 @@ Public Class frmLainEthLite
                 SaveUserTable()
                 CurrentAdminList.Remove(name)
                 bot = New clsBotCommandHostChannel(GetAdminList())
-                SendChat(String.Format("/w {0} {1} is no longer an admin.", RootAdmin, name))
+                SendChat(String.Format("/w {0} {1} is no longer an admin.", data.botSettings.RootAdmin, name))
             Else
-                SendChat(String.Format("/w {0} {1} was never an admin.", RootAdmin, name))
+                SendChat(String.Format("/w {0} {1} was never an admin.", data.botSettings.RootAdmin, name))
             End If
         End If
     End Sub
@@ -1365,12 +1387,12 @@ Public Class frmLainEthLite
             Dim oldvalue = data.botSettings.maxGames
             data.botSettings.maxGames = max
             If max > oldvalue Then
-                SendChat(String.Format("/w {0} the max gamecap has been increased from {1} games to {2} games.", RootAdmin, oldvalue, max))
+                SendChat(String.Format("/w {0} the max gamecap has been increased from {1} games to {2} games.", data.botSettings.RootAdmin, oldvalue, max))
             Else
                 If max = oldvalue Then
-                    SendChat(String.Format("/w {0} the max gamecap was {1} games.", RootAdmin, max))
+                    SendChat(String.Format("/w {0} the max gamecap was {1} games.", data.botSettings.RootAdmin, max))
                 Else
-                    SendChat(String.Format("/w {0} the max gamecap has been decreased from {1} games to {2} games.", RootAdmin, oldvalue, max))
+                    SendChat(String.Format("/w {0} the max gamecap has been decreased from {1} games to {2} games.", data.botSettings.RootAdmin, oldvalue, max))
                 End If
             End If
         End If
@@ -1387,6 +1409,10 @@ Public Class frmLainEthLite
             data.save_botSettings()
         ElseIf text = "load" Then
             data.load_botSettings()
+        ElseIf text = "xmlload" Then
+            LoadConfigurationTable(New DataSet(ProjectLainName).Tables(ProjectLainConfig))
+            data.save_botSettings()
+            LoadAll()
         End If
 
 
@@ -1591,10 +1617,10 @@ Public Class frmLainEthLite
         End If
     End Sub
     Private Function Start() As Boolean
-        If listUser.Items.Contains(RootAdmin) = False Then
-            listUser.Items.Add(RootAdmin)
+        If listUser.Items.Contains(data.botSettings.RootAdmin) = False Then
+            listUser.Items.Add(data.botSettings.RootAdmin)
             SaveUserTable()
-            CurrentAdminList.Add(RootAdmin)
+            CurrentAdminList.Add(data.botSettings.RootAdmin)
         End If
         Try
 
@@ -1799,7 +1825,7 @@ Public Class frmLainEthLite
 
     'Netrunner|0.1|txt revolution|
     Private Sub TextBox1_TextChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles TextBox1.TextChanged
-        RootAdmin = TextBox1.Text
+        data.botSettings.RootAdmin = TextBox1.Text
     End Sub
     'Netrunner|0.1|txt revolution|
     Private Sub CheckBox1_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles CheckBox1.CheckedChanged

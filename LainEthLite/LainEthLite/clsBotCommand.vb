@@ -304,53 +304,53 @@ Public Class clsBotCommandHostChannel
                         RaiseEvent EventBotGetGames(isWhisper, data.GetUser)
                         'Netrunner|0.1|root admin commands|
                     Case clsBotCommandClassifier.BotCommandType.CHANNEL
-                        If command.commandParamameter.Length > 0 And CStr(data.GetUser).ToLower = frmLainEthLite.RootAdmin.ToLower Then
+                        If command.commandParamameter.Length > 0 And CStr(data.GetUser).ToLower = frmLainEthLite.data.botSettings.RootAdmin.ToLower Then
                             channel = ""
                             For i = 0 To command.commandParamameter.Length - 1
                                 channel = channel & command.commandParamameter(i) & " "
                             Next
                             RaiseEvent EventBotChangeChannel(channel.Trim(CChar(" ")))
                         Else
-                            If CStr(data.GetUser).ToLower = frmLainEthLite.RootAdmin Then
+                            If CStr(data.GetUser).ToLower = frmLainEthLite.data.botSettings.RootAdmin Then
                                 RaiseEvent EventBotResponse("!CHANNEL [channelname]", True, data.GetUser)
                             End If
                         End If
                         'Netrunner|0.1|txt revolution|
                     Case clsBotCommandClassifier.BotCommandType.RECONNECT
-                        If command.commandParamameter.Length = 1 And CStr(data.GetUser).ToLower = frmLainEthLite.RootAdmin.ToLower Then
+                        If command.commandParamameter.Length = 1 And CStr(data.GetUser).ToLower = frmLainEthLite.data.botSettings.RootAdmin.ToLower Then
                             If command.commandParamameter(0).ToLower = "on" Then
                                 RaiseEvent EventBotToggleReconnect(True)
                             ElseIf command.commandParamameter(0).ToLower = "off" Then
                                 RaiseEvent EventBotToggleReconnect(False)
                             End If
                         Else
-                            If CStr(data.GetUser).ToLower = frmLainEthLite.RootAdmin Then
+                            If CStr(data.GetUser).ToLower = frmLainEthLite.data.botSettings.RootAdmin Then
                                 RaiseEvent EventBotResponse("!RECONNECT [on | off]", True, data.GetUser)
                             End If
                         End If
                         'Netrunner|0.1|txt revolution|
                     Case clsBotCommandClassifier.BotCommandType.ADDADMIN
-                        If command.commandParamameter.Length = 1 AndAlso CStr(data.GetUser).ToLower = frmLainEthLite.RootAdmin.ToLower Then
+                        If command.commandParamameter.Length = 1 AndAlso CStr(data.GetUser).ToLower = frmLainEthLite.data.botSettings.RootAdmin.ToLower Then
                             RaiseEvent EventBotModifyAdmin(command.commandParamameter(0).ToLower, True)
                         Else
-                            If CStr(data.GetUser).ToLower = frmLainEthLite.RootAdmin Then
+                            If CStr(data.GetUser).ToLower = frmLainEthLite.data.botSettings.RootAdmin Then
                                 RaiseEvent EventBotResponse("!ADDADMIN [name]", True, data.GetUser)
                             End If
                         End If
                         'Netrunner|0.1|txt revolution|
                     Case clsBotCommandClassifier.BotCommandType.REMOVEADMIN
-                        If command.commandParamameter.Length = 1 And CStr(data.GetUser).ToLower = frmLainEthLite.RootAdmin.ToLower Then
+                        If command.commandParamameter.Length = 1 And CStr(data.GetUser).ToLower = frmLainEthLite.data.botSettings.RootAdmin.ToLower Then
                             RaiseEvent EventBotModifyAdmin(command.commandParamameter(0).ToLower, False)
                         Else
-                            If CStr(data.GetUser).ToLower = frmLainEthLite.RootAdmin Then
+                            If CStr(data.GetUser).ToLower = frmLainEthLite.data.botSettings.RootAdmin Then
                                 RaiseEvent EventBotResponse("!REMOVEADMIN [name]", True, data.GetUser)
                             End If
                         End If
                     Case clsBotCommandClassifier.BotCommandType.MAXGAMES
-                        If command.commandParamameter.Length = 1 AndAlso CStr(data.GetUser).ToLower = frmLainEthLite.RootAdmin.ToLower Then
+                        If command.commandParamameter.Length = 1 AndAlso CStr(data.GetUser).ToLower = frmLainEthLite.data.botSettings.RootAdmin.ToLower Then
                             RaiseEvent EventBotMaxGames(CByte(command.commandParamameter(0).ToLower))
                         Else
-                            If CStr(data.GetUser).ToLower = frmLainEthLite.RootAdmin Then
+                            If CStr(data.GetUser).ToLower = frmLainEthLite.data.botSettings.RootAdmin Then
                                 RaiseEvent EventBotResponse("!MAXGAMES [0 < X < 255]", True, data.GetUser)
                             End If
                         End If

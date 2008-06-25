@@ -45,6 +45,8 @@ Public Class clsData
         botSettings = New clsBotSettings
 
     End Sub
+
+#Region "LOAD/SAVE BOT SETTINGS"
     Public Sub save_botSettings()
         Dim results As Db4o.IObjectSet
         Dim found As clsBotSettings = New clsBotSettings
@@ -70,7 +72,6 @@ Public Class clsData
 
         End Try
     End Sub
-
     Public Sub load_botSettings()
         Dim results As Db4o.IObjectSet
 
@@ -84,9 +85,7 @@ Public Class clsData
             'work with data
             If results.Count > 0 Then
                 MsgBox(String.Format("number of returned results: {0}", results.Count))
-                For Each element As clsBotSettings In results
-                    'MsgBox(String.Format("RoC: {0}  TFT: {1}", element.rocKey, element.tftKey))
-                Next
+                frmLainEthLite.data.botSettings = CType(results.Next, clsBotSettings)
             Else
                 'MsgBox("No results found in the database.")
             End If
@@ -97,9 +96,7 @@ Public Class clsData
 
         End Try
     End Sub
-
-
-
+#End Region
 End Class
 
 #Region "ADMIN DATA"
@@ -321,6 +318,9 @@ Public Class clsBotSettings
     Public maxPing As Integer      'Maximum ping before a player gets kicked
     Public maxGames As Byte         'Maximum games allowed to be hosted at a time
 
+    'temporary
+    Public RootAdmin As String      'used for the old uberadmin system
+
     Public Sub New()
         'configuration
         Me.wc3Path = "C:\Program Files\Warcraft III\"       'Path to war3.exe
@@ -345,6 +345,8 @@ Public Class clsBotSettings
         Me.countdown = 0                                    '0 to disable, 1+ to enable
         Me.maxPing = 150                                    'Maximum ping before a player gets kicked
         Me.maxGames = 255                                   'Maximum games allowed to be hosted at a
+
+        Me.RootAdmin = "UberAdmin"                          'old uber admin system
     End Sub
 
 End Class
