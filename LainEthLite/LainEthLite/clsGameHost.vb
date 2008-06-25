@@ -1100,34 +1100,28 @@ Public Class clsGameHost
                             Dim user As clsUser
 
                             player = protocol.RECEIVE_W3GS_REQJOIN(command.GetPacketData, command.GetPacketSocket())
-                            If playerCount < numPlayers AndAlso player.GetName().Length > 0 Then
+                            If player.GetName().Length > 0 Then
                                 'check to see if the user exists in the database
                                 user = data.userList.getUser(player.GetName)
                                 If user.name = "" Then
-                                    SendChat(String.Format("Adding {0} as a new player in the local database.", player.GetName))
+                                    'SendChat(String.Format("Adding {0} as a new player in the local database.", player.GetName))
                                     data.userList.addUser(player.GetName, player.GetSock.GetLocalIP, player.GetSock.GetRemoteIP)
-                                Else
-                                    If user.ban.Length > 0 Then
-                                        'player.cancelSpoofCheck()
-                                        ClientStop(player.GetSock)
-                                        SendChat(String.Format("{0} is blacklisted and cannot join this game.", player.GetName))
-                                        Exit Select
-                                    ElseIf user.vip = True Then
-                                        'new database VIP list check
-                                        SendChat(String.Format("{0} has VIP status and last played {1} day(s) ago.", player.GetName, Now.Subtract(user.recentGame).Days))
-                                        SID = protocol.GetReserveSlot(reserveList)
-                                        If SID <> 255 Then
-                                            botLobby_EventBotSlot(True, SID)  'kick the non reserved player so the reserved player can join.
-                                        End If
-                                    ElseIf (reserveList.Contains(player.GetName.ToLower)) Then  'Check to see if the player is on the reserve list
-                                        SendChat(String.Format("{0} has VIP status and is trying to join this game.", player.GetName))
-                                        SID = protocol.GetReserveSlot(reserveList)
-                                        If SID <> 255 Then
-                                            botLobby_EventBotSlot(True, SID)  'kick the non reserved player so the reserved player can join.
-                                        End If
-                                    Else
-                                        SendChat(String.Format("{0} last played {1} day(s) ago.", player.GetName, Now.Subtract(user.recentGame).Days))
+                                End If
+
+                                If user.ban.Length > 0 Then
+                                    'player.cancelSpoofCheck()
+                                    ClientStop(player.GetSock)
+                                    SendChat(String.Format("{0} is blacklisted and cannot join this game.", player.GetName))
+                                    Exit Select
+                                ElseIf (user.vip = True) Or (reserveList.Contains(player.GetName.ToLower)) Then
+                                    'new database VIP list check
+                                    SendChat(String.Format("{0} has VIP status and last played {1} day(s) ago.", player.GetName, Now.Subtract(user.recentGame).Days))
+                                    SID = protocol.GetReserveSlot(reserveList)
+                                    If SID <> 255 Then
+                                        botLobby_EventBotSlot(True, SID)  'kick the non reserved player so the reserved player can join.
                                     End If
+                                Else
+                                    SendChat(String.Format("{0} last played {1} day(s) ago.", player.GetName, Now.Subtract(user.recentGame).Days))
                                 End If
 
                                 Debug.WriteLine(String.Format("{0} is trying to join the game.", player.GetName))
@@ -1452,6 +1446,10 @@ Public Class clsGameHost
 
             PID = protocol.PlayerRemove(client, slotOpen)
             If PID <> 255 Then
+                If isGameLoaded = False AndAlso countdownCounter >= 0 Then
+                    countdownCounter = -1
+                    SendChat("Countdown aborted!")
+                End If
                 For Each player In protocol.GetPlayerList(PID)
                     player.GetSock.Send(protocol.SEND_W3GS_PLAYERLEAVE_OTHERS(PID))
                 Next
@@ -1464,10 +1462,6 @@ Public Class clsGameHost
             RemoveHandler client.EventError, AddressOf client_OnEventError
             RemoveHandler protocol.GetPlayerFromSocket(client).EventSpoofCheck, AddressOf OnEventMessage_SpoofCheck
 
-            If isGameLoaded = False AndAlso countdownCounter >= 0 Then
-                countdownCounter = -1
-                SendChat("Countdown aborted!")
-            End If
             If isCountDownStarted = False Then
                 timeGameExpire = TIME_GAME_EXPIRE_COUNTER - 60 'check 1 minutes afer
             ElseIf isGameLoaded Then
