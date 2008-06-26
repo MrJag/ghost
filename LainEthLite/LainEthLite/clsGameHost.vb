@@ -324,14 +324,37 @@ Public Class clsGameHost
 
     Private Sub botGame_EventBotKick(ByVal name As String, ByVal kicker As String) Handles botGame.EventBotKick
         Dim player As clsHostPlayer
+        Dim playerMatches As Integer = 0
+        Dim kickerPID As Byte
 
         Try
-            For Each player In protocol.GetPlayerList(protocol.GetHostPID)
-                If player.GetName.ToLower = name.ToLower Then
-                    ClientStop(player.GetSock)
-                    SendChat(String.Format("{0} was kicked out of game by {1}", name, kicker))
+            'find the kicker's PID
+            For Each PID In protocol.GetPIDList
+                If protocol.GetPlayerFromName(kicker).GetPID() = kickerPID Then
+                    kickerPID = PID
+                    Exit For
                 End If
             Next
+
+            'find the number of players that match the search string
+            For Each player In protocol.GetPlayerList(protocol.GetHostPID)
+                If (player.GetName.ToLower).Contains(name.ToLower) Then
+                    playerMatches = playerMatches + 1
+                End If
+            Next
+
+            If playerMatches = 0 Then
+                SendChat(String.Format("There are no matches found for '{0}'", name), kickerPID)
+            ElseIf playerMatches = 1 Then
+                For Each player In protocol.GetPlayerList(protocol.GetHostPID)
+                    If player.GetName.ToLower = name.ToLower Then
+                        ClientStop(player.GetSock)
+                        SendChat(String.Format("{0} was kicked out of game by {1}", name, kicker))
+                    End If
+                Next
+            Else
+                SendChat(String.Format("There were too many matches found for '{0}'", name), kickerPID)
+            End If
         Catch ex As Exception
         End Try
     End Sub
