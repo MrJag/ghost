@@ -385,7 +385,7 @@ Public Class clsGameHost
         username = data.userList.fixName(name)
 
         If username.Length > 0 Then
-            data.adminList.getUser(name).setAccess(accessLevel)
+            data.adminList.getUser(name).addAccess(accessLevel)
             SendChat(String.Format("Updating {0}'s access level to {1}", username, accessLevel))
         Else
             SendChat(String.Format("Error: {0} is not a valid user", name))

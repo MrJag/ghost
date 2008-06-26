@@ -9,7 +9,7 @@ Public Class frmLainEthLite
     Inherits System.Windows.Forms.Form
     'Netrunner|0.11|txt revolution|
     Public Shared Parameters As Integer
-    Public CurrentAdminList As ArrayList
+    'Public CurrentAdminList As ArrayList
 
     Public Shared data As New clsData
 
@@ -776,8 +776,8 @@ Public Class frmLainEthLite
         Dim ds As DataSet
 
         Try
-            If (File.Exists("ghost.db")) Then
-                data.load_botSettings() 'load bot settings from database into data class
+            If data.load_botSettings() Then
+                'load bot settings from database into data class
                 txtWar3.Text = data.botSettings.wc3Path
                 comboRealm.Text = data.botSettings.realm
                 txtROC.Text = data.botSettings.rocKey
@@ -875,17 +875,28 @@ Public Class frmLainEthLite
 
     Private Function LoadUserTable(ByVal table As DataTable) As Boolean
         Dim row As DataRow
-        CurrentAdminList.Clear()
+
         Try
-            If table.Rows.Count > 0 AndAlso table.Columns.Contains("user") Then
+            If data.load_adminData Then
                 listUser.BeginUpdate()
                 listUser.Items.Clear()
-                For Each row In table.Rows
-                    listUser.Items.Add(CStr(row("user")))
-                    CurrentAdminList.Add(CStr(row("user")))
+                For Each user As clsAdmin In data.adminList.getList
+                    listUser.Items.Add(user.name)
                 Next
                 listUser.EndUpdate()
-                Return True
+            Else
+                If table.Rows.Count > 0 AndAlso table.Columns.Contains("user") Then
+                    listUser.BeginUpdate()
+                    listUser.Items.Clear()
+                    For Each row In table.Rows
+                        listUser.Items.Add(CStr(row("user")))
+                        data.adminList.addUser(CStr(row("user"))) 'default to max admin privs.
+                        'CurrentAdminList.Add(CStr(row("user")))
+                    Next
+                    listUser.EndUpdate()
+                    data.save_adminData()
+                    Return True
+                End If
             End If
 
             Return False
@@ -1364,7 +1375,7 @@ Public Class frmLainEthLite
             If name.Length > 0 AndAlso listUser.Items.Contains(name) = False Then
                 listUser.Items.Add(name)
                 SaveUserTable()
-                CurrentAdminList.Add(name)
+                data.adminList.addUser(name)
                 bot = New clsBotCommandHostChannel(GetAdminList())
                 SendChat(String.Format("/w {0} {1} is an admin now.", data.botSettings.RootAdmin, name))
             Else
@@ -1374,7 +1385,7 @@ Public Class frmLainEthLite
             If name.Length > 0 AndAlso listUser.Items.Contains(name) Then
                 listUser.Items.Remove(name)
                 SaveUserTable()
-                CurrentAdminList.Remove(name)
+                data.adminList.removeUser(name)
                 bot = New clsBotCommandHostChannel(GetAdminList())
                 SendChat(String.Format("/w {0} {1} is no longer an admin.", data.botSettings.RootAdmin, name))
             Else
@@ -1486,7 +1497,7 @@ Public Class frmLainEthLite
         Me.ReflectEngineState()
         Me.buttonGo.Focus()
 
-        CurrentAdminList = New ArrayList
+        'CurrentAdminList = New ArrayList
 
         aliveTimer = New Timers.Timer
         aliveTimer.Interval = 1000
@@ -1620,7 +1631,7 @@ Public Class frmLainEthLite
         If listUser.Items.Contains(data.botSettings.RootAdmin) = False Then
             listUser.Items.Add(data.botSettings.RootAdmin)
             SaveUserTable()
-            CurrentAdminList.Add(data.botSettings.RootAdmin)
+            data.adminList.addUser(data.botSettings.RootAdmin)
         End If
         Try
 
@@ -1655,8 +1666,12 @@ Public Class frmLainEthLite
 
     End Function
     Private Function GetAdminList() As String()
+        Dim tempAdminList As New ArrayList
         Try
-            Return CType(CurrentAdminList.ToArray(GetType(String)), String())
+            For Each user As clsAdmin In data.adminList.getList
+                tempAdminList.Add(user.name)
+            Next
+            Return CType(tempAdminList.ToArray(GetType(String)), String())
         Catch ex As Exception
             Debug.WriteLine(ex)
             Return New String() {}
@@ -1760,7 +1775,7 @@ Public Class frmLainEthLite
         If name.Length > 0 AndAlso listUser.Items.Contains(name) = False Then
             listUser.Items.Add(name)
             SaveUserTable()
-            CurrentAdminList.Add(name)
+            data.adminList.addUser(name)
             txtUserName.Text = ""
         End If
     End Sub
@@ -1770,7 +1785,7 @@ Public Class frmLainEthLite
         If name.Length > 0 AndAlso listUser.Items.Contains(name) Then
             listUser.Items.Remove(name)
             SaveUserTable()
-            CurrentAdminList.Remove(name)
+            data.adminList.removeUser(name)
         End If
     End Sub
     Private Sub UpdateGameList()

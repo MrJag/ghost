@@ -72,8 +72,9 @@ Public Class clsData
 
         End Try
     End Sub
-    Public Sub load_botSettings()
+    Public Function load_botSettings() As Boolean
         Dim results As Db4o.IObjectSet
+        Dim retVal As Boolean = True
 
         Try
             'open database
@@ -87,15 +88,68 @@ Public Class clsData
                 'MsgBox(String.Format("number of returned results: {0}", results.Count))
                 frmLainEthLite.data.botSettings = CType(results.Next, clsBotSettings)
             Else
+                retVal = False
                 'MsgBox("No results found in the database.")
             End If
 
         Finally
             'close database / commit transaction
             database.Close()
+        End Try
+        Return retVal
+    End Function
+#End Region
+#Region "LOAD/SAVE ADMIN LIST"
+    Public Sub save_adminData()
+        Dim results As Db4o.IObjectSet
+        Dim found As clsAdminList = New clsAdminList
+        Try
+            'open database
+            database = Db4o.Db4oFactory.OpenFile("ghost.db")
 
+            'check if database already contains this data
+            results = database.Get(GetType(clsAdminList))
+            If results.Count > 0 Then
+                found = CType(results.Next, clsAdminList)
+                database.Delete(found)
+                'MsgBox("Updating bot settings in database.")
+                database.Set(frmLainEthLite.data.adminList)
+            Else
+                'MsgBox("Writting bot settings to database.")
+                database.Set(adminList)
+            End If
+
+        Finally
+            'close database / commit transaction
+            database.Close()
         End Try
     End Sub
+    Public Function load_adminData() As Boolean
+        Dim results As Db4o.IObjectSet
+        Dim retVal As Boolean = True
+
+        Try
+            'open database
+            database = Db4o.Db4oFactory.OpenFile("ghost.db")
+
+            'get data
+            results = database.Get(GetType(clsAdminList))
+
+            'work with data
+            If results.Count > 0 Then
+                'MsgBox(String.Format("number of returned results: {0}", results.Count))
+                frmLainEthLite.data.adminList = CType(results.Next, clsAdminList)
+            Else
+                retVal = False
+                'MsgBox("No results found in the database.")
+            End If
+
+        Finally
+            'close database / commit transaction
+            database.Close()
+        End Try
+        Return retVal
+    End Function
 #End Region
 End Class
 
@@ -107,6 +161,9 @@ Public Class clsAdminList
         adminList = New ArrayList
     End Sub
 
+    Public Function getList() As ArrayList
+        Return adminList
+    End Function
     Public Function getUser(ByVal name As String) As clsAdmin
         For Each user As clsAdmin In adminList
             Debug.WriteLine(String.Format("getUser :: comparing [{0}] to [{1}]", user.name.ToLower, name.ToLower))
@@ -127,6 +184,28 @@ Public Class clsAdminList
         Return New clsAdmin
     End Function
 
+    Public Sub addUser(ByVal name As String)
+        Dim maxAdminFlag As adminFlags = adminFlags.NORMAL
+
+        For Each value As adminFlags In [Enum].GetValues(GetType(adminFlags))
+            maxAdminFlag = maxAdminFlag Or value
+        Next
+
+        addUser(name, maxAdminFlag)
+    End Sub
+    Public Sub addUser(ByVal name As String, ByVal flag As adminFlags)
+        Dim arrayPosition As Integer = 0
+        Try
+            arrayPosition = adminList.Add(New clsAdmin(name))
+            CType(adminList.Item(arrayPosition), clsAdmin).addAccess(flag)
+        Catch ex As Exception
+            'error handling
+        End Try
+    End Sub
+    Public Sub removeUser(ByVal name As String)
+        adminList.Remove(getUser(name))
+    End Sub
+
 End Class
 Public Class clsAdmin
 
@@ -143,11 +222,18 @@ Public Class clsAdmin
         Me.flags = adminFlags.NORMAL
     End Sub
 
-    Public Sub setAccess(ByVal flag As adminFlags)
+    Public Sub addAccess(ByVal flag As adminFlags)
         'todo
         'Client c = new Client();
         'c.ClientState = (ClientStates.HasDiscount|ClientStates.IsSupplier|ClientStates.IsOverdra
         flags = flags Or flag
+    End Sub
+
+    Public Sub removeAccess(ByVal flag As adminFlags)
+        'todo
+        'Client c = new Client();
+        'c.ClientState = (ClientStates.HasDiscount|ClientStates.IsSupplier|ClientStates.IsOverdra
+        flags = CType(flags - flag, adminFlags)
     End Sub
 End Class
 #End Region

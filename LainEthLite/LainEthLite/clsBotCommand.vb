@@ -414,36 +414,33 @@ Public Class clsBotCommandHostChannel
                         Dim actionType As Byte = action.INVALID
 
                         If command.commandParamameter(0).ToLower = "add" Then
-                            actionType = action.ADD
-                        ElseIf command.commandParamameter(0).ToLower = "rem" Or command.commandParamameter(0).ToLower = "remove" Then
-                            actionType = action.REMOVE
-                        ElseIf command.commandParamameter(0).ToLower = "show" Then
-                            actionType = action.SHOW
-                        End If
-
-                        If actionType = action.ADD Or actionType = action.REMOVE Then
-                            If actionType = action.ADD Then
-                                output.Append(String.Format("Added to {0}: ", command.commandParamameter(1)))
-                            ElseIf actionType = action.REMOVE Then
-                                output.Append(String.Format("Removed from {0}: ", command.commandParamameter(1)))
-                            End If
+                            output.Append(String.Format("Added to {0}: ", command.commandParamameter(1)))
                             For i = 2 To command.commandParamameter.Length - 1
                                 For Each flag As adminFlags In [Enum].GetValues(GetType(adminFlags))
                                     Debug.WriteLine(String.Format("comparing [{0}] to [{1}]", command.commandParamameter(i).ToLower, flag.ToString.ToLower))
                                     If command.commandParamameter(i).ToLower = flag.ToString.ToLower Then
                                         Debug.WriteLine(String.Format("Getting user [{0}] and setting access flag [{1}]", command.commandParamameter(1), flag.ToString))
-                                        'Dim adminUser As clsAdmin
-                                        'adminUser = frmLainEthLite.data.adminList.getUser(command.commandParamameter(1).ToString)
-                                        'Debug.WriteLine("setting access")
-                                        'adminUser.setAccess(flag)
-                                        frmLainEthLite.data.adminList.getUser(command.commandParamameter(1)).setAccess(flag)
+                                        frmLainEthLite.data.adminList.getUser(command.commandParamameter(1)).addAccess(flag)
                                         output.Append(String.Format("{0}, ", flag.ToString))
                                         Exit For
                                     End If
                                 Next
                             Next
-                        ElseIf actionType = action.SHOW Then
-                            Dim username As String = frmLainEthLite.data.userList.fixName(command.commandParamameter(1))
+                        ElseIf command.commandParamameter(0).ToLower = "rem" Or command.commandParamameter(0).ToLower = "remove" Then
+                            output.Append(String.Format("Removed from {0}: ", command.commandParamameter(1)))
+                            For i = 2 To command.commandParamameter.Length - 1
+                                For Each flag As adminFlags In [Enum].GetValues(GetType(adminFlags))
+                                    Debug.WriteLine(String.Format("comparing [{0}] to [{1}]", command.commandParamameter(i).ToLower, flag.ToString.ToLower))
+                                    If command.commandParamameter(i).ToLower = flag.ToString.ToLower Then
+                                        Debug.WriteLine(String.Format("Getting user [{0}] and setting access flag [{1}]", command.commandParamameter(1), flag.ToString))
+                                        frmLainEthLite.data.adminList.getUser(command.commandParamameter(1)).removeAccess(flag)
+                                        output.Append(String.Format("{0}, ", flag.ToString))
+                                        Exit For
+                                    End If
+                                Next
+                            Next
+                        ElseIf command.commandParamameter(0).ToLower = "show" Then
+                            Dim username As String = frmLainEthLite.data.adminList.getUser(command.commandParamameter(1)).name
                             If username.Length > 0 Then
                                 output.Append(String.Format("Access for {0}: ", username))
                                 For Each flag As adminFlags In [Enum].GetValues(GetType(adminFlags))
@@ -453,9 +450,15 @@ Public Class clsBotCommandHostChannel
                                         End If
                                     End If
                                 Next
-                            Else
-                                output.Append(String.Format("{0} does not exist.", command.commandParamameter(1)))
                             End If
+                        ElseIf command.commandParamameter(0).ToLower = "list" Then
+                            'Dim listOutput As New System.Text.StringBuilder
+                            output.Append("Current admins: ")
+                            For Each adminUser As clsAdmin In frmLainEthLite.data.adminList.getList
+                                output.Append(String.Format("{0}, ", adminUser.name))
+                            Next
+                        Else
+                            output.Append(String.Format("{0} does not exist.", command.commandParamameter(1)))
                         End If
                         RaiseEvent EventBotResponse(output.ToString, isWhisper, data.GetUser)
                     Case clsBotCommandClassifier.BotCommandType.BAN
@@ -655,36 +658,33 @@ Public Class clsBotCommandHostLobby
                     Dim actionType As Byte = action.INVALID
 
                     If command.commandParamameter(0).ToLower = "add" Then
-                        actionType = action.ADD
-                    ElseIf command.commandParamameter(0).ToLower = "rem" Or command.commandParamameter(0).ToLower = "remove" Then
-                        actionType = action.REMOVE
-                    ElseIf command.commandParamameter(0).ToLower = "show" Then
-                        actionType = action.SHOW
-                    End If
-
-                    If actionType = action.ADD Or actionType = action.REMOVE Then
-                        If actionType = action.ADD Then
-                            output.Append(String.Format("Added to {0}: ", command.commandParamameter(1)))
-                        ElseIf actionType = action.REMOVE Then
-                            output.Append(String.Format("Removed from {0}: ", command.commandParamameter(1)))
-                        End If
+                        output.Append(String.Format("Added to {0}: ", command.commandParamameter(1)))
                         For i = 2 To command.commandParamameter.Length - 1
                             For Each flag As adminFlags In [Enum].GetValues(GetType(adminFlags))
                                 Debug.WriteLine(String.Format("comparing [{0}] to [{1}]", command.commandParamameter(i).ToLower, flag.ToString.ToLower))
                                 If command.commandParamameter(i).ToLower = flag.ToString.ToLower Then
                                     Debug.WriteLine(String.Format("Getting user [{0}] and setting access flag [{1}]", command.commandParamameter(1), flag.ToString))
-                                    'Dim adminUser As clsAdmin
-                                    'adminUser = frmLainEthLite.data.adminList.getUser(command.commandParamameter(1).ToString)
-                                    'Debug.WriteLine("setting access")
-                                    'adminUser.setAccess(flag)
-                                    frmLainEthLite.data.adminList.getUser(command.commandParamameter(1)).setAccess(flag)
+                                    frmLainEthLite.data.adminList.getUser(command.commandParamameter(1)).addAccess(flag)
                                     output.Append(String.Format("{0}, ", flag.ToString))
                                     Exit For
                                 End If
                             Next
                         Next
-                    ElseIf actionType = action.SHOW Then
-                        Dim username As String = frmLainEthLite.data.userList.fixName(command.commandParamameter(1))
+                    ElseIf command.commandParamameter(0).ToLower = "rem" Or command.commandParamameter(0).ToLower = "remove" Then
+                        output.Append(String.Format("Removed from {0}: ", command.commandParamameter(1)))
+                        For i = 2 To command.commandParamameter.Length - 1
+                            For Each flag As adminFlags In [Enum].GetValues(GetType(adminFlags))
+                                Debug.WriteLine(String.Format("comparing [{0}] to [{1}]", command.commandParamameter(i).ToLower, flag.ToString.ToLower))
+                                If command.commandParamameter(i).ToLower = flag.ToString.ToLower Then
+                                    Debug.WriteLine(String.Format("Getting user [{0}] and setting access flag [{1}]", command.commandParamameter(1), flag.ToString))
+                                    frmLainEthLite.data.adminList.getUser(command.commandParamameter(1)).removeAccess(flag)
+                                    output.Append(String.Format("{0}, ", flag.ToString))
+                                    Exit For
+                                End If
+                            Next
+                        Next
+                    ElseIf command.commandParamameter(0).ToLower = "show" Then
+                        Dim username As String = frmLainEthLite.data.adminList.getUser(command.commandParamameter(1)).name
                         If username.Length > 0 Then
                             output.Append(String.Format("Access for {0}: ", username))
                             For Each flag As adminFlags In [Enum].GetValues(GetType(adminFlags))
@@ -694,9 +694,15 @@ Public Class clsBotCommandHostLobby
                                     End If
                                 End If
                             Next
-                        Else
-                            output.Append(String.Format("{0} does not exist.", command.commandParamameter(1)))
                         End If
+                    ElseIf command.commandParamameter(0).ToLower = "list" Then
+                        'Dim listOutput As New System.Text.StringBuilder
+                        output.Append("Current admins: ")
+                        For Each adminUser As clsAdmin In frmLainEthLite.data.adminList.getList
+                            output.Append(String.Format("{0}, ", adminUser.name))
+                        Next
+                    Else
+                        output.Append(String.Format("{0} does not exist.", command.commandParamameter(1)))
                     End If
                     RaiseEvent EventBotResponse(output.ToString)
 
